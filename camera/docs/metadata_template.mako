@@ -75,6 +75,10 @@
                 <details>${prop.details}</details>
               % endif
 
+              % if prop.ndk_details is not None:
+                <ndk_details>${prop.ndk_details}</ndk_details>
+              % endif
+
               % if prop.hal_details is not None:
                 <hal_details>${prop.hal_details}</hal_details>
               % endif
@@ -115,6 +119,10 @@
           % if prop.hwlevel:
                 hwlevel="${prop.hwlevel}"
           % endif
+
+          % if (prop.hal_major_version, prop.hal_minor_version) != (3,2):
+                hal_version="${prop.hal_major_version}.${prop.hal_minor_version}"
+          % endif
             >
 
               % if prop.container == 'array':
@@ -149,10 +157,20 @@
                     % if value.id is not None:
                              id="${value.id}"
                     % endif
+                    % if not (value.hal_major_version == prop.hal_major_version and value.hal_minor_version == prop.hal_minor_version):
+                             hal_version=${"%d.%d" % (value.hal_major_version, value.hal_minor_version)}
+                    % endif
                       >${value.name}
                     % if value.notes is not None:
                              <notes>${value.notes}</notes>
                     % endif
+                    % if value.sdk_notes is not None:
+                             <sdk_notes>${value.sdk_notes}</sdk_notes>
+                    % endif
+                    % if value.ndk_notes is not None:
+                             <ndk_notes>${value.ndk_notes}</ndk_notes>
+                    % endif
+
                       </value>
                   % endfor
                 </enum>
@@ -172,6 +190,10 @@
 
               % if prop.details is not None:
                 <details>${prop.details | x}</details>
+              % endif
+
+              % if prop.ndk_details is not None:
+                <ndk_details>${prop.ndk_details}</ndk_details>
               % endif
 
               % if prop.hal_details is not None:

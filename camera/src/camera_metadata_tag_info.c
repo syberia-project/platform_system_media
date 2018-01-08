@@ -218,6 +218,8 @@ static tag_info_t android_control[ANDROID_CONTROL_END -
     { "postRawSensitivityBoost",       TYPE_INT32  },
     [ ANDROID_CONTROL_ENABLE_ZSL - ANDROID_CONTROL_START ] =
     { "enableZsl",                     TYPE_BYTE   },
+    [ ANDROID_CONTROL_AF_SCENE_CHANGE - ANDROID_CONTROL_START ] =
+    { "afSceneChange",                 TYPE_INT32  },
 };
 
 static tag_info_t android_demosaic[ANDROID_DEMOSAIC_END -
@@ -398,6 +400,8 @@ static tag_info_t android_request[ANDROID_REQUEST_END -
     { "availableResultKeys",           TYPE_INT32  },
     [ ANDROID_REQUEST_AVAILABLE_CHARACTERISTICS_KEYS - ANDROID_REQUEST_START ] =
     { "availableCharacteristicsKeys",  TYPE_INT32  },
+    [ ANDROID_REQUEST_AVAILABLE_SESSION_KEYS - ANDROID_REQUEST_START ] =
+    { "availableSessionKeys",          TYPE_INT32  },
 };
 
 static tag_info_t android_scaler[ANDROID_SCALER_END -
@@ -1367,6 +1371,21 @@ int camera_metadata_enum_snprint(uint32_t tag,
             }
             break;
         }
+        case ANDROID_CONTROL_AF_SCENE_CHANGE: {
+            switch (value) {
+                case ANDROID_CONTROL_AF_SCENE_CHANGE_NOT_DETECTED:
+                    msg = "NOT_DETECTED";
+                    ret = 0;
+                    break;
+                case ANDROID_CONTROL_AF_SCENE_CHANGE_DETECTED:
+                    msg = "DETECTED";
+                    ret = 0;
+                    break;
+                default:
+                    msg = "error: enum value out of range";
+            }
+            break;
+        }
 
         case ANDROID_DEMOSAIC_MODE: {
             switch (value) {
@@ -1840,6 +1859,9 @@ int camera_metadata_enum_snprint(uint32_t tag,
             break;
         }
         case ANDROID_REQUEST_AVAILABLE_CHARACTERISTICS_KEYS: {
+            break;
+        }
+        case ANDROID_REQUEST_AVAILABLE_SESSION_KEYS: {
             break;
         }
 
