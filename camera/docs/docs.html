@@ -983,6 +983,8 @@
             ><a href="#dynamic_android.statistics.oisXShifts">android.statistics.oisXShifts</a></li>
             <li
             ><a href="#dynamic_android.statistics.oisYShifts">android.statistics.oisYShifts</a></li>
+            <li
+            ><a href="#dynamic_android.statistics.oisSamples">android.statistics.oisSamples</a></li>
           </ul>
         </li>
       </ul> <!-- toc_section -->
@@ -13755,13 +13757,12 @@ is therefore no larger than <code>|<wbr/>r|<wbr/> &lt;= sqrt(2)</code>.<wbr/></p
                     <span class="entry_type_enum_name">PRIMARY_CAMERA (v3.3)</span>
                     <span class="entry_type_enum_notes"><p>The value of <a href="#static_android.lens.poseTranslation">android.<wbr/>lens.<wbr/>pose<wbr/>Translation</a> is relative to the optical center of
 the largest camera device facing the same direction as this camera.<wbr/></p>
-<p>This default value for API levels before Android P.<wbr/></p></span>
+<p>This is the default value for API levels before Android P.<wbr/></p></span>
                   </li>
                   <li>
                     <span class="entry_type_enum_name">GYROSCOPE (v3.3)</span>
                     <span class="entry_type_enum_notes"><p>The value of <a href="#static_android.lens.poseTranslation">android.<wbr/>lens.<wbr/>pose<wbr/>Translation</a> is relative to the position of the
-primary gyroscope of this Android device.<wbr/></p>
-<p>This is the value reported by all devices that support the MOTION_<wbr/>TRACKING capability.<wbr/></p></span>
+primary gyroscope of this Android device.<wbr/></p></span>
                   </li>
                 </ul>
 
@@ -13792,9 +13793,6 @@ primary gyroscope of this Android device.<wbr/></p>
             <td class="entry_details" colspan="6">
               <p>Different calibration methods and use cases can produce better or worse results
 depending on the selected coordinate origin.<wbr/></p>
-<p>For devices designed to support the MOTION_<wbr/>TRACKING capability,<wbr/> the GYROSCOPE origin
-makes device calibration and later usage by applications combining camera and gyroscope
-information together simpler.<wbr/></p>
             </td>
           </tr>
 
@@ -16866,35 +16864,10 @@ during high speed streaming.<wbr/></p></span>
                   <li>
                     <span class="entry_type_enum_name">MOTION_TRACKING (v3.3)</span>
                     <span class="entry_type_enum_optional">[optional]</span>
-                    <span class="entry_type_enum_notes"><p>The device supports controls and metadata required for accurate motion tracking for
-use cases such as augmented reality,<wbr/> electronic image stabilization,<wbr/> and so on.<wbr/></p>
-<p>This means this camera device has accurate optical calibration and timestamps relative
-to the inertial sensors.<wbr/></p>
-<p>This capability requires the camera device to support the following:</p>
-<ul>
-<li>Capture request templates <a href="https://developer.android.com/reference/android/hardware/camera2/CameraDevice.html#TEMPLATE_MOTION_TRACKING_PREVIEW">Camera<wbr/>Device#TEMPLATE_<wbr/>MOTION_<wbr/>TRACKING_<wbr/>PREVIEW</a> and <a href="https://developer.android.com/reference/android/hardware/camera2/CameraDevice.html#TEMPLATE_MOTION_TRACKING_BEST">Camera<wbr/>Device#TEMPLATE_<wbr/>MOTION_<wbr/>TRACKING_<wbr/>BEST</a> are defined.<wbr/></li>
-<li>The stream configurations listed in <a href="https://developer.android.com/reference/android/hardware/camera2/CameraDevice.html#createCaptureSession">CameraDevice#createCaptureSession</a> for MOTION_<wbr/>TRACKING are
-  supported,<wbr/> either at 30 or 60fps maximum frame rate.<wbr/></li>
-<li>The following camera characteristics and capture result metadata are provided:<ul>
-<li><a href="#static_android.lens.intrinsicCalibration">android.<wbr/>lens.<wbr/>intrinsic<wbr/>Calibration</a></li>
-<li><a href="#static_android.lens.radialDistortion">android.<wbr/>lens.<wbr/>radial<wbr/>Distortion</a></li>
-<li><a href="#static_android.lens.poseRotation">android.<wbr/>lens.<wbr/>pose<wbr/>Rotation</a></li>
-<li><a href="#static_android.lens.poseTranslation">android.<wbr/>lens.<wbr/>pose<wbr/>Translation</a></li>
-<li><a href="#static_android.lens.poseReference">android.<wbr/>lens.<wbr/>pose<wbr/>Reference</a> with value GYROSCOPE</li>
-</ul>
-</li>
-<li>The <a href="#static_android.sensor.info.timestampSource">android.<wbr/>sensor.<wbr/>info.<wbr/>timestamp<wbr/>Source</a> field has value <code>REALTIME</code>.<wbr/> When compared to
-  timestamps from the device's gyroscopes,<wbr/> the clock difference for events occuring at
-  the same actual time instant will be less than 1 ms.<wbr/></li>
-<li>The value of the <a href="#dynamic_android.sensor.rollingShutterSkew">android.<wbr/>sensor.<wbr/>rolling<wbr/>Shutter<wbr/>Skew</a> field is accurate to within 1 ms.<wbr/></li>
-<li>The value of <a href="#controls_android.sensor.exposureTime">android.<wbr/>sensor.<wbr/>exposure<wbr/>Time</a> is guaranteed to be available in the
-  capture result.<wbr/></li>
-<li>The <a href="#controls_android.control.captureIntent">android.<wbr/>control.<wbr/>capture<wbr/>Intent</a> control supports MOTION_<wbr/>TRACKING to limit maximum
-  exposure to 20 milliseconds.<wbr/></li>
-<li>The stream configurations required for MOTION_<wbr/>TRACKING (listed at <a href="https://developer.android.com/reference/android/hardware/camera2/CameraDevice.html#createCaptureSession">CameraDevice#createCaptureSession</a>) can operate at least at
-  30fps; optionally,<wbr/> they can operate at 60fps,<wbr/> and '[60,<wbr/> 60]' is listed in
-  <a href="#static_android.control.aeAvailableTargetFpsRanges">android.<wbr/>control.<wbr/>ae<wbr/>Available<wbr/>Target<wbr/>Fps<wbr/>Ranges</a>.<wbr/></li>
-</ul></span>
+                    <span class="entry_type_enum_notes"><p>The camera device supports the MOTION_<wbr/>TRACKING value for
+<a href="#controls_android.control.captureIntent">android.<wbr/>control.<wbr/>capture<wbr/>Intent</a>,<wbr/> which limits maximum exposure time to 20 ms.<wbr/></p>
+<p>This limits the motion blur of capture images,<wbr/> resulting in better image tracking
+results for use cases such as image stabilization or augmented reality.<wbr/></p></span>
                   </li>
                   <li>
                     <span class="entry_type_enum_name">LOGICAL_MULTI_CAMERA (v3.3)</span>
@@ -16917,19 +16890,24 @@ also exposed to the application.<wbr/></p>
 <li><a href="#static_android.lens.radialDistortion">android.<wbr/>lens.<wbr/>radial<wbr/>Distortion</a></li>
 </ul>
 </li>
+<li>The SENSOR_<wbr/>INFO_<wbr/>TIMESTAMP_<wbr/>SOURCE of the logical device and physical devices must be
+  the same.<wbr/></li>
 <li>The logical camera device must be LIMITED or higher device.<wbr/></li>
 </ul>
 <p>Both the logical camera device and its underlying physical devices support the
 mandatory stream combinations required for their device levels.<wbr/></p>
 <p>Additionally,<wbr/> for each guaranteed stream combination,<wbr/> the logical camera supports:</p>
 <ul>
-<li>Replacing one logical <a href="https://developer.android.com/reference/android/graphics/ImageFormat.html#YUV_420_888">YUV_<wbr/>420_<wbr/>888</a>
+<li>For each guaranteed stream combination,<wbr/> the logical camera supports replacing one
+  logical <a href="https://developer.android.com/reference/android/graphics/ImageFormat.html#YUV_420_888">YUV_<wbr/>420_<wbr/>888</a>
   or raw stream with two physical streams of the same size and format,<wbr/> each from a
   separate physical camera,<wbr/> given that the size and format are supported by both
   physical cameras.<wbr/></li>
-<li>Adding two raw streams,<wbr/> each from one physical camera,<wbr/> if the logical camera doesn't
-  advertise RAW capability,<wbr/> but the underlying physical cameras do.<wbr/> This is usually
-  the case when the physical cameras have different sensor sizes.<wbr/></li>
+<li>If the logical camera doesn't advertise RAW capability,<wbr/> but the underlying physical
+  cameras do,<wbr/> the logical camera will support guaranteed stream combinations for RAW
+  capability,<wbr/> except that the RAW streams will be physical streams,<wbr/> each from a separate
+  physical camera.<wbr/> This is usually the case when the physical cameras have different
+  sensor sizes.<wbr/></li>
 </ul>
 <p>Using physical streams in place of a logical stream of the same size and format will
 not slow down the frame rate of the capture,<wbr/> as long as the minimum frame duration
@@ -17424,11 +17402,7 @@ of keys that can be overriden using <a href="https://developer.android.com/refer
 The respective value of such request key can be obtained by calling
 <a href="https://developer.android.com/reference/CaptureRequest/Builder.html#getPhysicalCameraKey">Builder#getPhysicalCameraKey</a>.<wbr/> Capture requests that contain
 individual physical device requests must be built via
-<a href="https://developer.android.com/reference/android/hardware/camera2/CameraDevice.html#createCaptureRequest(int,">Set)</a>.<wbr/>
-Such extended capture requests can be passed only to
-<a href="https://developer.android.com/reference/CameraCaptureSession.html#capture">CameraCaptureSession#capture</a> or <a href="https://developer.android.com/reference/CameraCaptureSession.html#captureBurst">CameraCaptureSession#captureBurst</a> and
-not to <a href="https://developer.android.com/reference/CameraCaptureSession.html#setRepeatingRequest">CameraCaptureSession#setRepeatingRequest</a> or
-<a href="https://developer.android.com/reference/CameraCaptureSession.html#setRepeatingBurst">CameraCaptureSession#setRepeatingBurst</a>.<wbr/></p>
+<a href="https://developer.android.com/reference/android/hardware/camera2/CameraDevice.html#createCaptureRequest(int,">Set)</a>.<wbr/></p>
             </td>
           </tr>
 
@@ -17445,6 +17419,9 @@ details).<wbr/></p>
 vendor extensions API and not against this field.<wbr/></p>
 <p>The HAL must not consume any request tags in the session parameters that
 are not listed either here or in the vendor tag list.<wbr/></p>
+<p>There should be no overlap between this set of keys and the available session keys
+<a href="https://developer.android.com/reference/android/hardware/camera2/CameraCharacteristics.html#getAvailableSessionKeys">CameraCharacteristics#getAvailableSessionKeys</a> along
+with any other controls that can have impact on the dual-camera sync.<wbr/></p>
 <p>The public camera2 API will always make the vendor tags visible
 via
 <a href="https://developer.android.com/reference/android/hardware/camera2/CameraCharacteristics.html#getAvailablePhysicalCameraRequestKeys">CameraCharacteristics#getAvailablePhysicalCameraRequestKeys</a>.<wbr/></p>
@@ -24118,7 +24095,7 @@ the output result metadata.<wbr/></p>
                 
           <tr class="entry" id="controls_android.statistics.oisDataMode">
             <td class="entry_name
-             " rowspan="3">
+             " rowspan="1">
               android.<wbr/>statistics.<wbr/>ois<wbr/>Data<wbr/>Mode
             </td>
             <td class="entry_type">
@@ -24144,7 +24121,7 @@ the output result metadata.<wbr/></p>
             </td> <!-- entry_type -->
 
             <td class="entry_description">
-              <p>Whether the camera device will output the OIS data in output
+              <p>A control for selecting whether OIS position information is included in output
 result metadata.<wbr/></p>
             </td>
 
@@ -24162,16 +24139,6 @@ result metadata.<wbr/></p>
             <td class="entry_tags">
             </td>
 
-          </tr>
-          <tr class="entries_header">
-            <th class="th_details" colspan="6">Details</th>
-          </tr>
-          <tr class="entry_cont">
-            <td class="entry_details" colspan="6">
-              <p>When set to ON,<wbr/>
-<a href="#dynamic_android.statistics.oisTimestamps">android.<wbr/>statistics.<wbr/>ois<wbr/>Timestamps</a>,<wbr/> android.<wbr/>statistics.<wbr/>ois<wbr/>Shift<wbr/>Pixel<wbr/>X,<wbr/>
-android.<wbr/>statistics.<wbr/>ois<wbr/>Shift<wbr/>Pixel<wbr/>Y will provide OIS data in the output result metadata.<wbr/></p>
-            </td>
           </tr>
 
 
@@ -25992,7 +25959,7 @@ the output result metadata.<wbr/></p>
                 
           <tr class="entry" id="dynamic_android.statistics.oisDataMode">
             <td class="entry_name
-             " rowspan="3">
+             " rowspan="1">
               android.<wbr/>statistics.<wbr/>ois<wbr/>Data<wbr/>Mode
             </td>
             <td class="entry_type">
@@ -26018,7 +25985,7 @@ the output result metadata.<wbr/></p>
             </td> <!-- entry_type -->
 
             <td class="entry_description">
-              <p>Whether the camera device will output the OIS data in output
+              <p>A control for selecting whether OIS position information is included in output
 result metadata.<wbr/></p>
             </td>
 
@@ -26036,16 +26003,6 @@ result metadata.<wbr/></p>
             <td class="entry_tags">
             </td>
 
-          </tr>
-          <tr class="entries_header">
-            <th class="th_details" colspan="6">Details</th>
-          </tr>
-          <tr class="entry_cont">
-            <td class="entry_details" colspan="6">
-              <p>When set to ON,<wbr/>
-<a href="#dynamic_android.statistics.oisTimestamps">android.<wbr/>statistics.<wbr/>ois<wbr/>Timestamps</a>,<wbr/> android.<wbr/>statistics.<wbr/>ois<wbr/>Shift<wbr/>Pixel<wbr/>X,<wbr/>
-android.<wbr/>statistics.<wbr/>ois<wbr/>Shift<wbr/>Pixel<wbr/>Y will provide OIS data in the output result metadata.<wbr/></p>
-            </td>
           </tr>
 
 
@@ -26065,7 +26022,7 @@ android.<wbr/>statistics.<wbr/>ois<wbr/>Shift<wbr/>Pixel<wbr/>Y will provide OIS
                 <span class="entry_type_array">
                   n
                 </span>
-              <span class="entry_type_visibility"> [public]</span>
+              <span class="entry_type_visibility"> [ndk_public]</span>
 
 
 
@@ -26120,7 +26077,7 @@ timebase as and comparable to <a href="#dynamic_android.sensor.timestamp">androi
                 <span class="entry_type_array">
                   n
                 </span>
-              <span class="entry_type_visibility"> [public]</span>
+              <span class="entry_type_visibility"> [ndk_public]</span>
 
 
 
@@ -26155,7 +26112,7 @@ timebase as and comparable to <a href="#dynamic_android.sensor.timestamp">androi
             <td class="entry_details" colspan="6">
               <p>The array contains the amount of shifts in x direction,<wbr/> in pixels,<wbr/> based on OIS samples.<wbr/>
 A positive value is a shift from left to right in active array coordinate system.<wbr/> For
-example,<wbr/> if the optical center is (1000,<wbr/> 500) in active array coordinates,<wbr/> an shift of
+example,<wbr/> if the optical center is (1000,<wbr/> 500) in active array coordinates,<wbr/> a shift of
 (3,<wbr/> 0) puts the new optical center at (1003,<wbr/> 500).<wbr/></p>
 <p>The number of shifts must match the number of timestamps in
 <a href="#dynamic_android.statistics.oisTimestamps">android.<wbr/>statistics.<wbr/>ois<wbr/>Timestamps</a>.<wbr/></p>
@@ -26179,7 +26136,7 @@ example,<wbr/> if the optical center is (1000,<wbr/> 500) in active array coordi
                 <span class="entry_type_array">
                   n
                 </span>
-              <span class="entry_type_visibility"> [public]</span>
+              <span class="entry_type_visibility"> [ndk_public]</span>
 
 
 
@@ -26214,10 +26171,71 @@ example,<wbr/> if the optical center is (1000,<wbr/> 500) in active array coordi
             <td class="entry_details" colspan="6">
               <p>The array contains the amount of shifts in y direction,<wbr/> in pixels,<wbr/> based on OIS samples.<wbr/>
 A positive value is a shift from top to bottom in active array coordinate system.<wbr/> For
-example,<wbr/> if the optical center is (1000,<wbr/> 500) in active array coordinates,<wbr/> an shift of
+example,<wbr/> if the optical center is (1000,<wbr/> 500) in active array coordinates,<wbr/> a shift of
 (0,<wbr/> 5) puts the new optical center at (1000,<wbr/> 505).<wbr/></p>
 <p>The number of shifts must match the number of timestamps in
 <a href="#dynamic_android.statistics.oisTimestamps">android.<wbr/>statistics.<wbr/>ois<wbr/>Timestamps</a>.<wbr/></p>
+            </td>
+          </tr>
+
+
+          <tr class="entry_spacer"><td class="entry_spacer" colspan="7"></td></tr>
+           <!-- end of entry -->
+        
+                
+          <tr class="entry" id="dynamic_android.statistics.oisSamples">
+            <td class="entry_name
+             " rowspan="3">
+              android.<wbr/>statistics.<wbr/>ois<wbr/>Samples
+            </td>
+            <td class="entry_type">
+                <span class="entry_type_name">float</span>
+                <span class="entry_type_container">x</span>
+
+                <span class="entry_type_array">
+                  n
+                </span>
+              <span class="entry_type_visibility"> [java_public as oisSample]</span>
+
+              <span class="entry_type_synthetic">[synthetic] </span>
+
+
+
+
+
+            </td> <!-- entry_type -->
+
+            <td class="entry_description">
+              <p>An array of OIS samples.<wbr/></p>
+            </td>
+
+            <td class="entry_units">
+            </td>
+
+            <td class="entry_range">
+            </td>
+
+            <td class="entry_hal_version">
+              <p>3.<wbr/>3</p>
+            </td>
+
+            <td class="entry_tags">
+            </td>
+
+          </tr>
+          <tr class="entries_header">
+            <th class="th_details" colspan="6">Details</th>
+          </tr>
+          <tr class="entry_cont">
+            <td class="entry_details" colspan="6">
+              <p>Each OIS sample contains the timestamp and the amount of shifts in x and y direction,<wbr/>
+in pixels,<wbr/> of the OIS sample.<wbr/></p>
+<p>A positive value for a shift in x direction is a shift from left to right in active array
+coordinate system.<wbr/> For example,<wbr/> if the optical center is (1000,<wbr/> 500) in active array
+coordinates,<wbr/> a shift of (3,<wbr/> 0) puts the new optical center at (1003,<wbr/> 500).<wbr/></p>
+<p>A positive value for a shift in y direction is a shift from top to bottom in active array
+coordinate system.<wbr/> For example,<wbr/> if the optical center is (1000,<wbr/> 500) in active array
+coordinates,<wbr/> a shift of (0,<wbr/> 5) puts the new optical center at (1000,<wbr/> 505).<wbr/></p>
             </td>
           </tr>
 
