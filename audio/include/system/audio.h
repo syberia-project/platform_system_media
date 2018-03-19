@@ -27,6 +27,7 @@
 #include <cutils/bitops.h>
 
 #include "audio-base.h"
+#include "audio-base-utils.h"
 
 __BEGIN_DECLS
 
@@ -42,20 +43,6 @@ __BEGIN_DECLS
 
 /* AudioFlinger and AudioPolicy services use I/O handles to identify audio sources and sinks */
 typedef int audio_io_handle_t;
-
-/* Do not change these values without updating their counterparts
- * in frameworks/base/media/java/android/media/AudioAttributes.java
- */
-typedef enum {
-    AUDIO_CONTENT_TYPE_UNKNOWN      = 0,
-    AUDIO_CONTENT_TYPE_SPEECH       = 1,
-    AUDIO_CONTENT_TYPE_MUSIC        = 2,
-    AUDIO_CONTENT_TYPE_MOVIE        = 3,
-    AUDIO_CONTENT_TYPE_SONIFICATION = 4,
-
-    AUDIO_CONTENT_TYPE_CNT,
-    AUDIO_CONTENT_TYPE_MAX          = AUDIO_CONTENT_TYPE_CNT - 1,
-} audio_content_type_t;
 
 typedef uint32_t audio_flags_mask_t;
 
@@ -197,6 +184,21 @@ static inline audio_channel_mask_t audio_channel_mask_from_representation_and_bi
 {
     return (audio_channel_mask_t) ((representation << AUDIO_CHANNEL_COUNT_MAX) | bits);
 }
+
+/**
+ * Expresses the convention when stereo audio samples are stored interleaved
+ * in an array.  This should improve readability by allowing code to use
+ * symbolic indices instead of hard-coded [0] and [1].
+ *
+ * For multi-channel beyond stereo, the platform convention is that channels
+ * are interleaved in order from least significant channel mask bit to most
+ * significant channel mask bit, with unused bits skipped.  Any exceptions
+ * to this convention will be noted at the appropriate API.
+ */
+enum {
+    AUDIO_INTERLEAVE_LEFT = 0,
+    AUDIO_INTERLEAVE_RIGHT = 1,
+};
 
 /* This enum is deprecated */
 typedef enum {
@@ -531,6 +533,10 @@ struct audio_mmap_position {
                                     is called */
 };
 
+/******************************
+ *  Helper functions
+ *****************************/
+
 static inline bool audio_is_output_device(audio_devices_t device)
 {
     if (((device & AUDIO_DEVICE_BIT_IN) == 0) &&
@@ -812,6 +818,28 @@ static inline audio_channel_mask_t audio_channel_in_mask_from_count(uint32_t cha
             AUDIO_CHANNEL_REPRESENTATION_POSITION, bits);
 }
 
+static inline audio_channel_mask_t audio_channel_mask_in_to_out(audio_channel_mask_t in)
+{
+    switch (in) {
+    case AUDIO_CHANNEL_IN_MONO:
+        return AUDIO_CHANNEL_OUT_MONO;
+    case AUDIO_CHANNEL_IN_STEREO:
+        return AUDIO_CHANNEL_OUT_STEREO;
+    case AUDIO_CHANNEL_IN_5POINT1:
+        return AUDIO_CHANNEL_OUT_5POINT1;
+    case AUDIO_CHANNEL_IN_3POINT1POINT2:
+        return AUDIO_CHANNEL_OUT_3POINT1POINT2;
+    case AUDIO_CHANNEL_IN_3POINT0POINT2:
+        return AUDIO_CHANNEL_OUT_3POINT0POINT2;
+    case AUDIO_CHANNEL_IN_2POINT1POINT2:
+        return AUDIO_CHANNEL_OUT_2POINT1POINT2;
+    case AUDIO_CHANNEL_IN_2POINT0POINT2:
+        return AUDIO_CHANNEL_OUT_2POINT0POINT2;
+    default:
+        return AUDIO_CHANNEL_INVALID;
+    }
+}
+
 static inline bool audio_is_valid_format(audio_format_t format)
 {
     switch (format & AUDIO_FORMAT_MAIN_MASK) {
@@ -835,6 +863,8 @@ static inline bool audio_is_valid_format(audio_format_t format)
     case AUDIO_FORMAT_AAC_ADTS:
     case AUDIO_FORMAT_HE_AAC_V1:
     case AUDIO_FORMAT_HE_AAC_V2:
+    case AUDIO_FORMAT_AAC_ELD:
+    case AUDIO_FORMAT_AAC_XHE:
     case AUDIO_FORMAT_VORBIS:
     case AUDIO_FORMAT_OPUS:
     case AUDIO_FORMAT_AC3:
@@ -859,6 +889,10 @@ static inline bool audio_is_valid_format(audio_format_t format)
     case AUDIO_FORMAT_DSD:
     case AUDIO_FORMAT_AC4:
     case AUDIO_FORMAT_LDAC:
+    case AUDIO_FORMAT_E_AC3_JOC:
+    case AUDIO_FORMAT_MAT_1_0:
+    case AUDIO_FORMAT_MAT_2_0:
+    case AUDIO_FORMAT_MAT_2_1:
         return true;
     default:
         return false;
@@ -1060,6 +1094,7 @@ __END_DECLS
 #define AUDIO_HARDWARE_MODULE_ID_REMOTE_SUBMIX "r_submix"
 #define AUDIO_HARDWARE_MODULE_ID_CODEC_OFFLOAD "codec_offload"
 #define AUDIO_HARDWARE_MODULE_ID_STUB "stub"
+#define AUDIO_HARDWARE_MODULE_ID_HEARING_AID "hearing_aid"
 
 /**
  * Multi-Stream Decoder (MSD) HAL service name. MSD HAL is used to mix
@@ -1154,9 +1189,5 @@ __END_DECLS
 #define AUDIO_OFFLOAD_CODEC_DOWN_SAMPLING  "music_offload_down_sampling"
 #define AUDIO_OFFLOAD_CODEC_DELAY_SAMPLES  "delay_samples"
 #define AUDIO_OFFLOAD_CODEC_PADDING_SAMPLES  "padding_samples"
-
-// FIXME: a temporary declaration for the incall music flag, will be removed when
-// declared in types.hal for audio HAL V4.0 and auto imported to audio-base.h
-#define AUDIO_OUTPUT_FLAG_INCALL_MUSIC 0x10000
 
 #endif  // ANDROID_AUDIO_CORE_H
