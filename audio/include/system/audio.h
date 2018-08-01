@@ -384,6 +384,13 @@ typedef int audio_port_handle_t;
 /* the maximum length for the human-readable device name */
 #define AUDIO_PORT_MAX_NAME_LEN 128
 
+/* a union to store port configuration flags. Declared as a type so can be reused
+   in framework code */
+union audio_io_flags {
+    audio_input_flags_t  input;
+    audio_output_flags_t output;
+};
+
 /* maximum audio device address length */
 #define AUDIO_DEVICE_MAX_ADDRESS_LEN 32
 
@@ -424,6 +431,9 @@ struct audio_port_config {
     audio_channel_mask_t     channel_mask; /* channel mask if applicable */
     audio_format_t           format;       /* format if applicable */
     struct audio_gain_config gain;         /* gain to apply if applicable */
+#ifndef AUDIO_NO_SYSTEM_DECLARATIONS
+    union audio_io_flags     flags;        /* framework only: HW_AV_SYNC, DIRECT, ... */
+#endif
     union {
         struct audio_port_config_device_ext  device;  /* device specific info */
         struct audio_port_config_mix_ext     mix;     /* mix specific info */
@@ -859,6 +869,28 @@ static inline audio_channel_mask_t audio_channel_mask_in_to_out(audio_channel_ma
     }
 }
 
+static inline audio_channel_mask_t audio_channel_mask_out_to_in(audio_channel_mask_t out)
+{
+    switch (out) {
+    case AUDIO_CHANNEL_OUT_MONO:
+        return AUDIO_CHANNEL_IN_MONO;
+    case AUDIO_CHANNEL_OUT_STEREO:
+        return AUDIO_CHANNEL_IN_STEREO;
+    case AUDIO_CHANNEL_OUT_5POINT1:
+        return AUDIO_CHANNEL_IN_5POINT1;
+    case AUDIO_CHANNEL_OUT_3POINT1POINT2:
+        return AUDIO_CHANNEL_IN_3POINT1POINT2;
+    case AUDIO_CHANNEL_OUT_3POINT0POINT2:
+        return AUDIO_CHANNEL_IN_3POINT0POINT2;
+    case AUDIO_CHANNEL_OUT_2POINT1POINT2:
+        return AUDIO_CHANNEL_IN_2POINT1POINT2;
+    case AUDIO_CHANNEL_OUT_2POINT0POINT2:
+        return AUDIO_CHANNEL_IN_2POINT0POINT2;
+    default:
+        return AUDIO_CHANNEL_INVALID;
+    }
+}
+
 static inline bool audio_is_valid_format(audio_format_t format)
 {
     switch (format & AUDIO_FORMAT_MAIN_MASK) {
@@ -1020,6 +1052,128 @@ static inline bool audio_device_is_digital(audio_devices_t device) {
     }
 }
 
+#ifndef AUDIO_NO_SYSTEM_DECLARATIONS
+
+static inline bool audio_gain_config_are_equal(
+        const struct audio_gain_config *lhs, const struct audio_gain_config *rhs) {
+    if (lhs->mode != rhs->mode) return false;
+    switch (lhs->mode) {
+    case AUDIO_GAIN_MODE_JOINT:
+        if (lhs->values[0] != rhs->values[0]) return false;
+        break;
+    case AUDIO_GAIN_MODE_CHANNELS:
+    case AUDIO_GAIN_MODE_RAMP:
+        if (lhs->channel_mask != rhs->channel_mask) return false;
+        for (int i = 0; i < popcount(lhs->channel_mask); ++i) {
+            if (lhs->values[i] != rhs->values[i]) return false;
+        }
+        break;
+    default: return false;
+    }
+    return lhs->ramp_duration_ms == rhs->ramp_duration_ms;
+}
+
+static inline bool audio_port_config_has_input_direction(const struct audio_port_config *port_cfg) {
+    switch (port_cfg->type) {
+    case AUDIO_PORT_TYPE_DEVICE:
+        switch (port_cfg->role) {
+        case AUDIO_PORT_ROLE_SOURCE: return true;
+        case AUDIO_PORT_ROLE_SINK: return false;
+        default: return false;
+        }
+    case AUDIO_PORT_TYPE_MIX:
+        switch (port_cfg->role) {
+        case AUDIO_PORT_ROLE_SOURCE: return false;
+        case AUDIO_PORT_ROLE_SINK: return true;
+        default: return false;
+        }
+    default: return false;
+    }
+}
+
+static inline bool audio_port_configs_are_equal(
+        const struct audio_port_config *lhs, const struct audio_port_config *rhs) {
+    if (lhs->role != rhs->role || lhs->type != rhs->type) return false;
+    switch (lhs->type) {
+    case AUDIO_PORT_TYPE_NONE: break;
+    case AUDIO_PORT_TYPE_DEVICE:
+        if (lhs->ext.device.hw_module != rhs->ext.device.hw_module ||
+                lhs->ext.device.type != rhs->ext.device.type ||
+                strncmp(lhs->ext.device.address, rhs->ext.device.address,
+                        AUDIO_DEVICE_MAX_ADDRESS_LEN) != 0) {
+            return false;
+        }
+        break;
+    case AUDIO_PORT_TYPE_MIX:
+        if (lhs->ext.mix.hw_module != rhs->ext.mix.hw_module ||
+                lhs->ext.mix.handle != rhs->ext.mix.handle) return false;
+        if (lhs->role == AUDIO_PORT_ROLE_SOURCE &&
+                lhs->ext.mix.usecase.stream != rhs->ext.mix.usecase.stream) return false;
+        else if (lhs->role == AUDIO_PORT_ROLE_SINK &&
+                lhs->ext.mix.usecase.source != rhs->ext.mix.usecase.source) return false;
+        break;
+    case AUDIO_PORT_TYPE_SESSION:
+        if (lhs->ext.session.session != rhs->ext.session.session) return false;
+        break;
+    default: return false;
+    }
+    return lhs->config_mask == rhs->config_mask &&
+            ((lhs->config_mask & AUDIO_PORT_CONFIG_SAMPLE_RATE) == 0 ||
+                    lhs->sample_rate == rhs->sample_rate) &&
+            ((lhs->config_mask & AUDIO_PORT_CONFIG_CHANNEL_MASK) == 0 ||
+                    lhs->channel_mask == rhs->channel_mask) &&
+            ((lhs->config_mask & AUDIO_PORT_CONFIG_FORMAT) == 0 ||
+                    lhs->format == rhs->format) &&
+            ((lhs->config_mask & AUDIO_PORT_CONFIG_GAIN) == 0 ||
+                    audio_gain_config_are_equal(&lhs->gain, &rhs->gain)) &&
+            ((lhs->config_mask & AUDIO_PORT_CONFIG_FLAGS) == 0 ||
+                    (audio_port_config_has_input_direction(lhs) ?
+                            lhs->flags.input == rhs->flags.input :
+                            lhs->flags.output == rhs->flags.output));
+}
+
+static inline bool audio_port_config_has_hw_av_sync(const struct audio_port_config *port_cfg) {
+    if (!(port_cfg->config_mask & AUDIO_PORT_CONFIG_FLAGS)) {
+        return false;
+    }
+    return audio_port_config_has_input_direction(port_cfg) ?
+            port_cfg->flags.input & AUDIO_INPUT_FLAG_HW_AV_SYNC
+            : port_cfg->flags.output & AUDIO_OUTPUT_FLAG_HW_AV_SYNC;
+}
+
+static inline bool audio_patch_has_hw_av_sync(const struct audio_patch *patch) {
+    for (unsigned int i = 0; i < patch->num_sources; ++i) {
+        if (audio_port_config_has_hw_av_sync(&patch->sources[i])) return true;
+    }
+    for (unsigned int i = 0; i < patch->num_sinks; ++i) {
+        if (audio_port_config_has_hw_av_sync(&patch->sinks[i])) return true;
+    }
+    return false;
+}
+
+static inline bool audio_patch_is_valid(const struct audio_patch *patch) {
+    // Note that patch can have no sinks.
+    return patch->num_sources != 0 && patch->num_sources <= AUDIO_PATCH_PORTS_MAX &&
+            patch->num_sinks <= AUDIO_PATCH_PORTS_MAX;
+}
+
+// Note that when checking for equality the order of ports must match.
+// Patches will not be equivalent if they contain the same ports but they are permuted differently.
+static inline bool audio_patches_are_equal(
+        const struct audio_patch *lhs, const struct audio_patch *rhs) {
+    if (!audio_patch_is_valid(lhs) || !audio_patch_is_valid(rhs)) return false;
+    if (lhs->num_sources != rhs->num_sources || lhs->num_sinks != rhs->num_sinks) return false;
+    for (unsigned int i = 0; i < lhs->num_sources; ++i) {
+        if (!audio_port_configs_are_equal(&lhs->sources[i], &rhs->sources[i])) return false;
+    }
+    for (unsigned int i = 0; i < lhs->num_sinks; ++i) {
+        if (!audio_port_configs_are_equal(&lhs->sinks[i], &rhs->sinks[i])) return false;
+    }
+    return true;
+}
+
+#endif
+
 // Unique effect ID (can be generated from the following site:
 //  http://www.itu.int/ITU-T/asn1/uuid.html)
 // This struct is used for effects identification and in soundtrigger.
@@ -1166,6 +1320,10 @@ __END_DECLS
 
 /* Screen state */
 #define AUDIO_PARAMETER_KEY_SCREEN_STATE "screen_state"
+
+/* User's preferred audio language setting (in ISO 639-2/T three-letter string code)
+ * used to select a specific language presentation for next generation audio codecs. */
+#define AUDIO_PARAMETER_KEY_AUDIO_LANGUAGE_PREFERRED "audio_language_preferred"
 
 /**
  *  audio stream parameters
