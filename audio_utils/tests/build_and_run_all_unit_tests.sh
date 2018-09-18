@@ -18,6 +18,11 @@ echo "waiting for device"
 adb root && adb wait-for-device remount
 
 echo "========================================"
+
+echo "testing fdtostring"
+adb push $OUT/data/nativetest/fdtostring_tests/fdtostring_tests /system/bin
+adb shell /system/bin/fdtostring_tests
+
 echo "testing primitives"
 adb push $OUT/system/lib/libaudioutils.so /system/lib
 adb push $OUT/data/nativetest/primitives_tests/primitives_tests /system/bin
@@ -38,6 +43,10 @@ adb shell /system/bin/string_tests
 echo "format tests"
 adb push $OUT/data/nativetest/format_tests/format_tests /system/bin
 adb shell /system/bin/format_tests
+
+echo "simplelog tests"
+adb push $OUT/data/nativetest/simplelog_tests/simplelog_tests /system/bin
+adb shell /system/bin/simplelog_tests
 
 echo "statistics tests"
 adb push $OUT/data/nativetest/statistics_tests/statistics_tests /system/bin
