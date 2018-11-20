@@ -76,6 +76,10 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
     <typedef name="streamConfiguration">
       <language name="java">android.hardware.camera2.params.StreamConfiguration</language>
     </typedef>
+    <typedef name="recommendedStreamConfiguration">
+      <language
+      name="java">android.hardware.camera2.params.RecommendedStreamConfiguration</language>
+    </typedef>
     <typedef name="streamConfigurationDuration">
       <language name="java">android.hardware.camera2.params.StreamConfigurationDuration</language>
     </typedef>
@@ -4656,8 +4660,9 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
             {@link android.graphics.ImageFormat#RAW12|AIMAGE_FORMAT_RAW12 RAW12}.
           * Processed (but not-stalling): any non-RAW format without a stall duration.  Typically
             {@link android.graphics.ImageFormat#YUV_420_888|AIMAGE_FORMAT_YUV_420_888 YUV_420_888},
-            {@link android.graphics.ImageFormat#NV21 NV21}, or {@link
-            android.graphics.ImageFormat#YV12 YV12}.
+            {@link android.graphics.ImageFormat#NV21 NV21}, {@link
+            android.graphics.ImageFormat#YV12 YV12}, or {@link
+            android.graphics.ImageFormat#Y8|AIMAGE_FORMAT_Y8 Y8} .
           </details>
           <tag id="BC" />
         </entry>
@@ -4717,6 +4722,7 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
           * {@link android.graphics.ImageFormat#YV12 YV12}
           * Implementation-defined formats, i.e. {@link
             android.hardware.camera2.params.StreamConfigurationMap#isOutputSupportedFor(Class)}
+          * {@link android.graphics.ImageFormat#Y8|AIMAGE_FORMAT_Y8 Y8}
 
           For full guarantees, query {@link
           android.hardware.camera2.params.StreamConfigurationMap#getOutputStallDuration} with a
@@ -5017,6 +5023,9 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
               * {@link android.graphics.ImageFormat#PRIVATE} will be reprocessable into both
                 {@link android.graphics.ImageFormat#YUV_420_888} and
                 {@link android.graphics.ImageFormat#JPEG} formats.
+              * For a MONOCHROME camera supporting Y8 format, {@link
+                android.graphics.ImageFormat#PRIVATE} will be reprocessable into
+                {@link android.graphics.ImageFormat#Y8}.
               * The maximum available resolution for PRIVATE streams
                 (both input/output) will match the maximum available
                 resolution of JPEG streams.
@@ -5078,7 +5087,8 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
 
               If the device supports the {@link
               android.graphics.ImageFormat#RAW10|AIMAGE_FORMAT_RAW10}, {@link
-              android.graphics.ImageFormat#RAW12|AIMAGE_FORMAT_RAW12}, then those can also be
+              android.graphics.ImageFormat#RAW12|AIMAGE_FORMAT_RAW12}, {@link
+              android.graphics.ImageFormat#Y8|AIMAGE_FORMAT_Y8}, then those can also be
               captured at the same rate as the maximum-size YUV_420_888 resolution is.
 
               If the device supports the PRIVATE_REPROCESSING capability, then the same guarantees
@@ -5106,7 +5116,8 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
 
               If the device supports the {@link
               android.graphics.ImageFormat#RAW10|AIMAGE_FORMAT_RAW10}, {@link
-              android.graphics.ImageFormat#RAW12|AIMAGE_FORMAT_RAW12}, then those can also be
+              android.graphics.ImageFormat#RAW12|AIMAGE_FORMAT_RAW12}, {@link
+              android.graphics.ImageFormat#Y8|AIMAGE_FORMAT_Y8}, then those can also be
               captured at the same rate as the maximum-size YUV_420_888 resolution is.
 
               In addition, the android.sync.maxLatency field is guaranted to have a value between 0
@@ -5143,6 +5154,8 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
               * The maximum available resolution for {@link
                 android.graphics.ImageFormat#YUV_420_888} streams (both input/output) will match the
                 maximum available resolution of {@link android.graphics.ImageFormat#JPEG} streams.
+              * For a MONOCHROME camera with Y8 format support, all the requirements mentioned
+                above for YUV_420_888 apply for Y8 format as well.
               * Static metadata android.reprocess.maxCaptureStall.
               * Only the below controls are effective for reprocessing requests and will be present
                 in capture results. The reprocess requests are from the original capture results
@@ -5180,8 +5193,8 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
               * The android.depth.depthIsExclusive entry is listed by this device.
               * As of Android P, the android.lens.poseReference entry is listed by this device.
               * A LIMITED camera with only the DEPTH_OUTPUT capability does not have to support
-                normal YUV_420_888, JPEG, and PRIV-format outputs. It only has to support the DEPTH16
-                format.
+                normal YUV_420_888, Y8, JPEG, and PRIV-format outputs. It only has to support the
+                DEPTH16 format.
 
               Generally, depth output operates at a slower frame rate than standard color capture,
               so the DEPTH16 and DEPTH_POINT_CLOUD formats will commonly have a stall duration that
@@ -5342,7 +5355,18 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
             <value optional="true" hal_version="3.3" >MONOCHROME
               <notes>
               The camera device is a monochrome camera that doesn't contain a color filter array,
-              and the pixel values on U and V planes are all 128.
+              and for YUV_420_888 stream, the pixel values on U and V planes are all 128.
+
+              A MONOCHROME camera must support the guaranteed stream combinations required for
+              its device level and capabilities. Additionally, if the monochrome camera device
+              supports Y8 format, all mandatory stream combination requirements related to {@link
+              android.graphics.ImageFormat#YUV_420_888|AIMAGE_FORMAT_YUV_420_888 YUV_420_888} apply
+              to {@link android.graphics.ImageFormat#Y8|AIMAGE_FORMAT_Y8 Y8} as well. There are no
+              mandatory stream combination requirements with regard to
+              {@link android.graphics.ImageFormat#Y8|AIMAGE_FORMAT_Y8 Y8} for Bayer camera devices.
+
+              Starting from Android Q, the SENSOR_INFO_COLOR_FILTER_ARRANGEMENT of a MONOCHROME
+              camera will be either MONO or NIR.
               </notes>
             </value>
 
@@ -5424,22 +5448,24 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
           * Camera HAL is strongly recommended to advertise camera devices with best feature,
           power, performance, and latency tradeoffs at the front of the camera id list.
 
-          For MONOCHROME, the camera device must also advertise BACKWARD_COMPATIBLE capability, and
-          it is exclusive of both RAW and MANUAL_POST_PROCESSING capabilities:
+          A MONOCHROME camera device must also advertise BACKWARD_COMPATIBLE capability, and must
+          not advertise MANUAL_POST_PROCESSING capability.
 
           * To maintain backward compatibility, the camera device must support all
           BACKWARD_COMPATIBLE required keys. The android.control.awbAvailableModes key only contains
           AUTO, and android.control.awbState are either CONVERGED or LOCKED depending on
           android.control.awbLock.
 
-          * A monochrome device doesn't need to advertise DNG related optional metadata tags.
-
           * android.colorCorrection.mode, android.colorCorrection.transform, and
-          android.colorCorrection.gains are not applicable. So the camera device cannot
-          be a FULL device. However, the HAL can still advertise other individual capabilites.
+          android.colorCorrection.gains must not be in available request and result keys.
+          As a result, the camera device cannot be a FULL device. However, the HAL can
+          still advertise other individual capabilites.
 
           * If the device supports tonemap control, only android.tonemap.curveRed is used.
           CurveGreen and curveBlue are no-ops.
+
+          In Android API level 28, a MONOCHROME camera device must not have RAW capability. From
+          API level 29, a camera is allowed to have both MONOCHROME and RAW capabilities.
           </hal_details>
         </entry>
         <entry name="availableRequestKeys" type="int32" visibility="ndk_public"
@@ -5800,7 +5826,7 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
               buffers with 16-bit pixels.
 
               Buffers of this format are typically expected to have a
-              Bayer Color Filter Array (CFA) layout, which is given in
+              Color Filter Array (CFA) layout, which is given in
               android.sensor.info.colorFilterArrangement. Sensors with
               CFAs that are not representable by a format in
               android.sensor.info.colorFilterArrangement should not
@@ -5866,6 +5892,15 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
             <value id="0x21">BLOB
               <notes>JPEG format</notes>
             </value>
+            <value id="0x25" hal_version="3.4">RAW10
+              <notes>RAW10</notes>
+            </value>
+            <value id="0x26" hal_version="3.4">RAW12
+              <notes>RAW12</notes>
+            </value>
+            <value id="0x20203859" hal_version="3.4">Y8
+              <notes>Y8</notes>
+            </value>
           </enum>
           <description>The list of image formats that are supported by this
           camera device for output streams.</description>
@@ -5888,7 +5923,8 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
           need access the image data.
 
           YCbCr_420_888 format must be supported by the HAL. When an image stream
-          needs CPU/application direct access, this format will be used.
+          needs CPU/application direct access, this format will be used. For a MONOCHROME
+          camera device, the pixel value of Cb and Cr planes is 128.
 
           The BLOB format must be supported by the HAL. This is used for the JPEG stream.
 
@@ -6101,6 +6137,17 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
 
           Attempting to configure an input stream with output streams not
           listed as available in this map is not valid.
+
+          Additionally, if the camera device is MONOCHROME with Y8 support, it will also support
+          the following map of formats if its dependent capability
+          (android.request.availableCapabilities) is supported:
+
+            Input Format                                    | Output Format                                     | Capability
+          :-------------------------------------------------|:--------------------------------------------------|:----------
+          {@link android.graphics.ImageFormat#PRIVATE}      | {@link android.graphics.ImageFormat#Y8}           | PRIVATE_REPROCESSING
+          {@link android.graphics.ImageFormat#Y8}           | {@link android.graphics.ImageFormat#JPEG}         | YUV_REPROCESSING
+          {@link android.graphics.ImageFormat#Y8}           | {@link android.graphics.ImageFormat#Y8}           | YUV_REPROCESSING
+
           </details>
           <hal_details>
           For the formats, see `system/core/include/system/graphics.h` for a definition
@@ -6341,6 +6388,7 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
           * {@link android.graphics.ImageFormat#YUV_420_888|AIMAGE_FORMAT_YUV_420_888}
           * {@link android.graphics.ImageFormat#RAW10|AIMAGE_FORMAT_RAW10}
           * {@link android.graphics.ImageFormat#RAW12|AIMAGE_FORMAT_RAW12}
+          * {@link android.graphics.ImageFormat#Y8|AIMAGE_FORMAT_Y8}
 
           All other formats may or may not have an allowed stall duration on
           a per-capability basis; refer to android.request.availableCapabilities
@@ -6485,6 +6533,160 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
 
           LEGACY capability devices will only support CENTER_ONLY cropping.
           </details>
+        </entry>
+        <entry name="availableRecommendedStreamConfigurations" type="int32" visibility="ndk_public"
+            optional="true" enum="true" container="array" typedef="recommendedStreamConfiguration"
+            hal_version="3.4">
+          <array>
+            <size>n</size>
+            <size>5</size>
+          </array>
+          <enum>
+            <value id="0x0">PREVIEW
+            <notes>
+                Preview must only include non-stalling processed stream configurations with
+                output formats like YUV_420_888, IMPLEMENTATION_DEFINED, etc.
+            </notes>
+            </value>
+            <value id="0x1">RECORD
+            <notes>
+                Video record must include stream configurations that match the advertised
+                supported media profiles {@link android.media.CamcorderProfile} with
+                IMPLEMENTATION_DEFINED format.
+            </notes>
+            </value>
+            <value id="0x2">VIDEO_SNAPSHOT
+            <notes>
+                Video snapshot must include stream configurations at least as big as
+                the maximum RECORD resolutions and only with format BLOB + DATASPACE_JFIF
+                format/dataspace combination (JPEG). Additionally the configurations shouldn't cause
+                preview glitches and also be able to run at 30 fps.
+            </notes>
+            </value>
+            <value id="0x3">SNAPSHOT
+            <notes>
+                Recommended snapshot stream configurations must include at least one with
+                size close to android.sensor.info.activeArraySize with BLOB + DATASPACE_JFIF
+                format/dataspace combination (JPEG). Taking into account restrictions on aspect
+                ratio, alignment etc. the area of the maximum suggested size shouldn’t be less than
+                97% of the sensor array size area.
+            </notes>
+            </value>
+            <value id="0x4">ZSL
+            <notes>
+                If supported, recommended input stream configurations must only be advertised with
+                ZSL along with other processed and/or stalling output formats.
+            </notes>
+            </value>
+            <value id="0x5">RAW
+            <notes>
+                If supported, recommended raw stream configurations must only include RAW based
+                output formats.
+            </notes>
+            </value>
+            <value id="0x6">PUBLIC_END
+            </value>
+            <value id="0x18">VENDOR_START
+            <notes>
+                Vendor defined use cases. These depend on the vendor implementation.
+            </notes>
+            </value>
+          </enum>
+          <description>Recommended stream configurations for common client use cases.
+          </description>
+          <details>Optional subset of the android.scaler.availableStreamConfigurations that contains
+          similar tuples listed as
+          (i.e. width, height, format, output/input stream, usecase bit field).
+          Camera devices will be able to suggest particular stream configurations which are
+          power and performance efficient for specific use cases. For more information about
+          retrieving the suggestions see
+          {@link android.hardware.camera2.CameraCharacteristics#getRecommendedStreamConfigurationMap}.
+          </details>
+          <ndk_details>
+          The data representation is int[5], which maps to
+          (width, height, format, output/input stream, usecase bit field). The array can be
+          parsed using the following pseudo code:
+
+          struct StreamConfiguration {
+          int32_t format;
+          int32_t width;
+          int32_t height;
+          int32_t isInput; };
+
+          void getPreferredStreamConfigurations(
+              int32_t *array, size_t count, int32_t usecaseId,
+              Vector &lt; StreamConfiguration &gt; * scs) {
+              const size_t STREAM_CONFIGURATION_SIZE = 5;
+              const size_t STREAM_WIDTH_OFFSET = 0;
+              const size_t STREAM_HEIGHT_OFFSET = 1;
+              const size_t STREAM_FORMAT_OFFSET = 2;
+              const size_t STREAM_IS_INPUT_OFFSET = 3;
+              const size_t STREAM_USECASE_BITMAP_OFFSET = 4;
+
+              for (size_t i = 0; i &lt; count; i+= STREAM_CONFIGURATION_SIZE) {
+                  int32_t width = array[i + STREAM_WIDTH_OFFSET];
+                  int32_t height = array[i + STREAM_HEIGHT_OFFSET];
+                  int32_t format = array[i + STREAM_FORMAT_OFFSET];
+                  int32_t isInput = array[i + STREAM_IS_INPUT_OFFSET];
+                  int32_t supportedUsecases = array[i + STREAM_USECASE_BITMAP_OFFSET];
+                  if (supportedUsecases &amp; (1 &lt;&lt; usecaseId)) {
+                      StreamConfiguration sc = {format, width, height, isInput};
+                      scs->add(sc);
+                  }
+              }
+          }
+
+          </ndk_details>
+          <hal_details>
+          There are some requirements that need to be considered regarding the usecases and the
+          suggested configurations:
+
+          * If android.scaler.availableRecommendedStreamConfigurations is set, then recommended
+          stream configurations must be present for all mandatory usecases PREVIEW,
+          SNAPSHOT, RECORD, VIDEO_SNAPSHOT. ZSL and RAW are
+          required depending on device capabilities see android.request.availableCapabilities.
+          * Non-existing usecases and non-vendor usecases within the range
+          (RAW : VENDOR_START] are prohibited as well as stream configurations not
+          present in the exhaustive android.scaler.availableStreamConfigurations list.
+
+          For example, in case the camera device supports only 4K and 1080p and both resolutions are
+          recommended for the mandatory usecases except preview which can run efficiently only
+          on 1080p. The array may look like this:
+
+          [3840, 2160, HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED,
+           ANDROID_SCALER_AVAILABLE_STREAM_CONFIGURATIONS_OUTPUT,
+           (1&lt;&lt; ANDROID_SCALER_AVAILABLE_RECOMMENDED_STREAM_CONFIGURATIONS_RECORD |
+           1&lt;&lt; ANDROID_SCALER_AVAILABLE_RECOMMENDED_STREAM_CONFIGURATIONS_SNAPSHOT |
+           1&lt;&lt; ANDROID_SCALER_AVAILABLE_RECOMMENDED_STREAM_CONFIGURATIONS_VIDEO_SNAPSHOT),
+
+           1920, 1080, HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED,
+           ANDROID_SCALER_AVAILABLE_STREAM_CONFIGURATIONS_OUTPUT,
+           (1&lt;&lt; ANDROID_SCALER_AVAILABLE_RECOMMENDED_STREAM_CONFIGURATIONS_PREVIEW |
+           1&lt;&lt; ANDROID_SCALER_AVAILABLE_RECOMMENDED_STREAM_CONFIGURATIONS_RECORD |
+           1&lt;&lt; ANDROID_SCALER_AVAILABLE_RECOMMENDED_STREAM_CONFIGURATIONS_SNAPSHOT |
+           1&lt;&lt; ANDROID_SCALER_AVAILABLE_RECOMMENDED_STREAM_CONFIGURATIONS_VIDEO_SNAPSHOT)]
+
+          </hal_details>
+        </entry>
+        <entry name="availableRecommendedInputOutputFormatsMap" type="int32" visibility="ndk_public"
+          optional="true" typedef="reprocessFormatsMap" hal_version="3.4">
+          <description>Recommended mappings of image formats that are supported by this
+          camera device for input streams, to their corresponding output formats.
+          </description>
+          <details>
+          This is a recommended subset of the complete list of mappings found in
+          android.scaler.availableInputOutputFormatsMap. The same requirements apply here as well.
+          The list however doesn't need to contain all available and supported mappings. Instead of
+          this developers must list only recommended and efficient entries.
+          If set, the information will be available in the ZERO_SHUTTER_LAG recommended stream
+          configuration see
+          {@link android.hardware.camera2.CameraCharacteristics#getRecommendedStreamConfigurationMap}.
+          </details>
+          <hal_details>
+          For a code sample of the required data encoding please check
+          android.scaler.availableInputOutputFormatsMap.
+          </hal_details>
+          <tag id="REPROC" />
         </entry>
       </static>
     </section>
@@ -6696,10 +6898,25 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
               <notes>Sensor is not Bayer; output has 3 16-bit
               values for each pixel, instead of just 1 16-bit value
               per pixel.</notes></value>
+              <value hal_version="3.5">MONO
+              <notes>Sensor doesn't have any Bayer color filter.
+              Such sensor captures visible light in monochrome. The exact weighting and
+              wavelengths captured is not specified, but generally only includes the visible
+              frequencies. This value implies a MONOCHROME camera.</notes></value>
+              <value hal_version="3.5">NIR
+              <notes>Sensor has a near infrared filter capturing light with wavelength between
+              roughly 750nm and 1400nm, and the same filter covers the whole sensor array. This
+              value implies a MONOCHROME camera.</notes></value>
             </enum>
             <description>The arrangement of color filters on sensor;
             represents the colors in the top-left 2x2 section of
-            the sensor, in reading order.</description>
+            the sensor, in reading order, for a Bayer camera, or the
+            light spectrum it captures for MONOCHROME camera.
+            </description>
+            <hal_details>
+            Starting from Android Q, the colorFilterArrangement for a MONOCHROME camera must be
+            single color patterns, such as MONO or NIR.
+            </hal_details>
             <tag id="RAW" />
           </entry>
           <entry name="exposureTimeRange" type="int64" visibility="public"
@@ -7024,6 +7241,9 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
           Some devices may choose to provide a second set of calibration
           information for improved quality, including
           android.sensor.referenceIlluminant2 and its corresponding matrices.
+
+          Starting from Android Q, this key will not be present for a MONOCHROME camera, even if
+          the camera device has RAW capability.
           </details>
           <hal_details>
           The first reference illuminant (android.sensor.referenceIlluminant1)
@@ -7065,6 +7285,9 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
           If this key is present, then android.sensor.colorTransform2,
           android.sensor.calibrationTransform2, and
           android.sensor.forwardMatrix2 will also be present.
+
+          Starting from Android Q, this key will not be present for a MONOCHROME camera, even if
+          the camera device has RAW capability.
           </details>
           <tag id="RAW" />
         </entry>
@@ -7090,6 +7313,9 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
           colorspace) into this camera device's native sensor color
           space under the first reference illuminant
           (android.sensor.referenceIlluminant1).
+
+          Starting from Android Q, this key will not be present for a MONOCHROME camera, even if
+          the camera device has RAW capability.
           </details>
           <tag id="RAW" />
         </entry>
@@ -7119,6 +7345,9 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
 
           This matrix will only be present if the second reference
           illuminant is present.
+
+          Starting from Android Q, this key will not be present for a MONOCHROME camera, even if
+          the camera device has RAW capability.
           </details>
           <tag id="RAW" />
         </entry>
@@ -7149,6 +7378,9 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
           and the CIE XYZ colorspace when calculating this transform will
           match the standard white point for the first reference illuminant
           (i.e. no chromatic adaptation will be applied by this transform).
+
+          Starting from Android Q, this key will not be present for a MONOCHROME camera, even if
+          the camera device has RAW capability.
           </details>
           <tag id="RAW" />
         </entry>
@@ -7182,6 +7414,9 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
 
           This matrix will only be present if the second reference
           illuminant is present.
+
+          Starting from Android Q, this key will not be present for a MONOCHROME camera, even if
+          the camera device has RAW capability.
           </details>
           <tag id="RAW" />
         </entry>
@@ -7210,6 +7445,9 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
           this matrix is chosen so that the standard white point for this reference
           illuminant in the reference sensor colorspace is mapped to D50 in the
           CIE XYZ colorspace.
+
+          Starting from Android Q, this key will not be present for a MONOCHROME camera, even if
+          the camera device has RAW capability.
           </details>
           <tag id="RAW" />
         </entry>
@@ -7241,6 +7479,9 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
 
           This matrix will only be present if the second reference
           illuminant is present.
+
+          Starting from Android Q, this key will not be present for a MONOCHROME camera, even if
+          the camera device has RAW capability.
           </details>
           <tag id="RAW" />
         </entry>
@@ -7280,6 +7521,8 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
           level values. For raw capture in particular, it is recommended to use
           pixels from android.sensor.opticalBlackRegions to calculate black
           level values for each frame.
+
+          For a MONOCHROME camera device, all of the 2x2 channels must have the same values.
           </details>
           <hal_details>
           The values are given in row-column scan order, with the first value
@@ -7418,6 +7661,9 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
           processing raw sensor data.
 
           The order of the values is R, G, B; where R is in the lowest index.
+
+          Starting from Android Q, this key will not be present for a MONOCHROME camera, even if
+          the camera device has RAW capability.
           </details>
           <tag id="RAW" />
         </entry>
@@ -7453,6 +7699,10 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
 
           A more detailed description of the noise model can be found in the
           Adobe DNG specification for the NoiseProfile tag.
+
+          For a MONOCHROME camera, there is only one color channel. So the noise model coefficients
+          will only contain one S and one O.
+
           </details>
           <hal_details>
           For a CFA layout of RGGB, the list of coefficients would be given as
@@ -7557,6 +7807,9 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
           correction to avoid demosaic errors (3-20% divergence).
           * R &amp;gt; 1.20 will require strong software correction to produce
           a usuable image (&amp;gt;20% divergence).
+
+          Starting from Android Q, this key will not be present for a MONOCHROME camera, even if
+          the camera device has RAW capability.
           </details>
           <hal_details>
           The green split given may be a static value based on prior
@@ -7851,6 +8104,8 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
           layout key (see android.sensor.info.colorFilterArrangement), i.e. the
           nth value given corresponds to the black level offset for the nth
           color channel listed in the CFA.
+
+          For a MONOCHROME camera, all of the 2x2 channels must have the same values.
 
           This key will be available if android.sensor.opticalBlackRegions is available or the
           camera device advertises this key via {@link
@@ -8379,6 +8634,19 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
           image of a gray wall (using bicubic interpolation for visual quality) as captured by the sensor gives:
 
           ![Image of a uniform white wall (inverse shading map)](android.statistics.lensShadingMap/inv_shading.png)
+
+          For a MONOCHROME camera, all of the 2x2 channels must have the same values. An example
+          shading map for such a camera is defined as:
+
+              android.lens.info.shadingMapSize = [ 4, 3 ]
+              android.statistics.lensShadingMap =
+              [ 1.3, 1.3, 1.3, 1.3,  1.2, 1.2, 1.2, 1.2,
+                  1.1, 1.1, 1.1, 1.1,  1.3, 1.3, 1.3, 1.3,
+                1.2, 1.2, 1.2, 1.2,  1.1, 1.1, 1.1, 1.1,
+                  1.0, 1.0, 1.0, 1.0,  1.2, 1.2, 1.2, 1.2,
+                1.3, 1.3, 1.3, 1.3,   1.2, 1.2, 1.2, 1.2,
+                  1.2, 1.2, 1.2, 1.2,  1.3, 1.3, 1.3, 1.3 ]
+
           </details>
         </entry>
         <entry name="lensShadingMap" type="float" visibility="ndk_public"
@@ -8423,15 +8691,15 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
           pixel ( ((W-1)/(N-1)) * x, ((H-1)/(M-1)) * y) for the four color channels.
           The map is assumed to be bilinearly interpolated between the sample points.
 
-          The channel order is [R, Geven, Godd, B], where Geven is the green
-          channel for the even rows of a Bayer pattern, and Godd is the odd rows.
+          For a Bayer camera, the channel order is [R, Geven, Godd, B], where Geven is
+          the green channel for the even rows of a Bayer pattern, and Godd is the odd rows.
           The shading map is stored in a fully interleaved format, and its size
           is provided in the camera static metadata by android.lens.info.shadingMapSize.
 
           The shading map will generally have on the order of 30-40 rows and columns,
           and will be smaller than 64x64.
 
-          As an example, given a very small map defined as:
+          As an example, given a very small map for a Bayer camera defined as:
 
               android.lens.info.shadingMapSize = [ 4, 3 ]
               android.statistics.lensShadingMap =
@@ -8455,6 +8723,18 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
           as captured by the sensor gives:
 
           ![Image of a uniform white wall (inverse shading map)](android.statistics.lensShadingMap/inv_shading.png)
+
+          For a MONOCHROME camera, all of the 2x2 channels must have the same values. An example
+          shading map for such a camera is defined as:
+
+              android.lens.info.shadingMapSize = [ 4, 3 ]
+              android.statistics.lensShadingMap =
+              [ 1.3, 1.3, 1.3, 1.3,  1.2, 1.2, 1.2, 1.2,
+                  1.1, 1.1, 1.1, 1.1,  1.3, 1.3, 1.3, 1.3,
+                1.2, 1.2, 1.2, 1.2,  1.1, 1.1, 1.1, 1.1,
+                  1.0, 1.0, 1.0, 1.0,  1.2, 1.2, 1.2, 1.2,
+                1.3, 1.3, 1.3, 1.3,   1.2, 1.2, 1.2, 1.2,
+                  1.2, 1.2, 1.2, 1.2,  1.3, 1.3, 1.3, 1.3 ]
 
           Note that the RAW image data might be subject to lens shading
           correction not reported on this map. Query
@@ -8813,8 +9093,8 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
           always provide a curve with number of points equivalent to
           android.tonemap.maxCurvePoints).
 
-          For devices with MONOCHROME capability, only red channel is used. Green and blue channels
-          are ignored.
+          For devices with MONOCHROME capability, all three channels must have the same set of
+          control points.
 
           A few examples, and their corresponding graphical mappings; these
           only specify the red channel and the precision is limited to 4
@@ -8886,8 +9166,8 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
           always provide a curve with number of points equivalent to
           android.tonemap.maxCurvePoints).
 
-          For devices with MONOCHROME capability, only red channel is used. Green and blue channels
-          are ignored.
+          For devices with MONOCHROME capability, all three channels must have the same set of
+          control points.
 
           A few examples, and their corresponding graphical mappings; these
           only specify the red channel and the precision is limited to 4
@@ -9882,6 +10162,36 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
           corrupted during depth measurement.
           </details>
         </entry>
+        <entry name="availableRecommendedDepthStreamConfigurations" type="int32"
+            visibility="ndk_public" optional="true" container="array"
+            typedef="recommendedStreamConfiguration" hal_version="3.4">
+          <array>
+            <size>n</size>
+            <size>5</size>
+          </array>
+          <description>Recommended depth stream configurations for common client use cases.
+          </description>
+          <details>Optional subset of the android.depth.availableDepthStreamConfigurations that
+          contains similar tuples listed as
+          (i.e. width, height, format, output/input stream, usecase bit field).
+          Camera devices will be able to suggest particular depth stream configurations which are
+          power and performance efficient for specific use cases. For more information about
+          retrieving the suggestions see
+          {@link android.hardware.camera2.CameraCharacteristics#getRecommendedStreamConfigurationMap}.
+          </details>
+          <ndk_details>
+          For data representation please refer to
+          android.scaler.availableRecommendedStreamConfigurations
+          </ndk_details>
+          <hal_details>
+          Recommended depth configurations are expected to be declared with SNAPSHOT and/or
+          ZSL if supported by the device.
+          For additional details on how to declare recommended stream configurations, check
+          android.scaler.availableRecommendedStreamConfigurations.
+          For additional requirements on depth streams please consider
+          android.depth.availableDepthStreamConfigurations.
+          </hal_details>
+        </entry>
       </static>
     </section>
     <section name="logicalMultiCamera">
@@ -9967,8 +10277,8 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
           any correction at all would slow down capture rate.  Every output stream will have a
           similar amount of enhancement applied.
 
-          The correction only applies to processed outputs such as YUV, JPEG, or DEPTH16; it is not
-          applied to any RAW output.
+          The correction only applies to processed outputs such as YUV, Y8, JPEG, or DEPTH16; it is
+          not applied to any RAW output.
 
           This control will be on by default on devices that support this control. Applications
           disabling distortion correction need to pay extra attention with the coordinate system of
