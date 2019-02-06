@@ -719,6 +719,15 @@ static tag_info_t android_depth[ANDROID_DEPTH_END -
     [ ANDROID_DEPTH_AVAILABLE_RECOMMENDED_DEPTH_STREAM_CONFIGURATIONS - ANDROID_DEPTH_START ] =
     { "availableRecommendedDepthStreamConfigurations",
                                         TYPE_INT32  },
+    [ ANDROID_DEPTH_AVAILABLE_DYNAMIC_DEPTH_STREAM_CONFIGURATIONS - ANDROID_DEPTH_START ] =
+    { "availableDynamicDepthStreamConfigurations",
+                                        TYPE_INT32  },
+    [ ANDROID_DEPTH_AVAILABLE_DYNAMIC_DEPTH_MIN_FRAME_DURATIONS - ANDROID_DEPTH_START ] =
+    { "availableDynamicDepthMinFrameDurations",
+                                        TYPE_INT64  },
+    [ ANDROID_DEPTH_AVAILABLE_DYNAMIC_DEPTH_STALL_DURATIONS - ANDROID_DEPTH_START ] =
+    { "availableDynamicDepthStallDurations",
+                                        TYPE_INT64  },
 };
 
 static tag_info_t android_logical_multi_camera[ANDROID_LOGICAL_MULTI_CAMERA_END -
@@ -727,6 +736,8 @@ static tag_info_t android_logical_multi_camera[ANDROID_LOGICAL_MULTI_CAMERA_END 
     { "physicalIds",                   TYPE_BYTE   },
     [ ANDROID_LOGICAL_MULTI_CAMERA_SENSOR_SYNC_TYPE - ANDROID_LOGICAL_MULTI_CAMERA_START ] =
     { "sensorSyncType",                TYPE_BYTE   },
+    [ ANDROID_LOGICAL_MULTI_CAMERA_ACTIVE_PHYSICAL_ID - ANDROID_LOGICAL_MULTI_CAMERA_START ] =
+    { "activePhysicalId",              TYPE_BYTE   },
 };
 
 static tag_info_t android_distortion_correction[ANDROID_DISTORTION_CORRECTION_END -
@@ -2869,6 +2880,27 @@ int camera_metadata_enum_snprint(uint32_t tag,
         case ANDROID_DEPTH_AVAILABLE_RECOMMENDED_DEPTH_STREAM_CONFIGURATIONS: {
             break;
         }
+        case ANDROID_DEPTH_AVAILABLE_DYNAMIC_DEPTH_STREAM_CONFIGURATIONS: {
+            switch (value) {
+                case ANDROID_DEPTH_AVAILABLE_DYNAMIC_DEPTH_STREAM_CONFIGURATIONS_OUTPUT:
+                    msg = "OUTPUT";
+                    ret = 0;
+                    break;
+                case ANDROID_DEPTH_AVAILABLE_DYNAMIC_DEPTH_STREAM_CONFIGURATIONS_INPUT:
+                    msg = "INPUT";
+                    ret = 0;
+                    break;
+                default:
+                    msg = "error: enum value out of range";
+            }
+            break;
+        }
+        case ANDROID_DEPTH_AVAILABLE_DYNAMIC_DEPTH_MIN_FRAME_DURATIONS: {
+            break;
+        }
+        case ANDROID_DEPTH_AVAILABLE_DYNAMIC_DEPTH_STALL_DURATIONS: {
+            break;
+        }
 
         case ANDROID_LOGICAL_MULTI_CAMERA_PHYSICAL_IDS: {
             break;
@@ -2886,6 +2918,9 @@ int camera_metadata_enum_snprint(uint32_t tag,
                 default:
                     msg = "error: enum value out of range";
             }
+            break;
+        }
+        case ANDROID_LOGICAL_MULTI_CAMERA_ACTIVE_PHYSICAL_ID: {
             break;
         }
 

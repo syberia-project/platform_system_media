@@ -1179,6 +1179,12 @@
             ><a href="#static_android.depth.depthIsExclusive">android.depth.depthIsExclusive</a></li>
             <li
             ><a href="#static_android.depth.availableRecommendedDepthStreamConfigurations">android.depth.availableRecommendedDepthStreamConfigurations</a></li>
+            <li
+            ><a href="#static_android.depth.availableDynamicDepthStreamConfigurations">android.depth.availableDynamicDepthStreamConfigurations</a></li>
+            <li
+            ><a href="#static_android.depth.availableDynamicDepthMinFrameDurations">android.depth.availableDynamicDepthMinFrameDurations</a></li>
+            <li
+            ><a href="#static_android.depth.availableDynamicDepthStallDurations">android.depth.availableDynamicDepthStallDurations</a></li>
           </ul>
         </li>
       </ul> <!-- toc_section -->
@@ -1193,6 +1199,13 @@
             ><a href="#static_android.logicalMultiCamera.physicalIds">android.logicalMultiCamera.physicalIds</a></li>
             <li
             ><a href="#static_android.logicalMultiCamera.sensorSyncType">android.logicalMultiCamera.sensorSyncType</a></li>
+          </ul>
+        </li>
+        <li>
+          <span class="toc_kind_header">dynamic</span>
+          <ul class="toc_section">
+            <li
+            ><a href="#dynamic_android.logicalMultiCamera.activePhysicalId">android.logicalMultiCamera.activePhysicalId</a></li>
           </ul>
         </li>
       </ul> <!-- toc_section -->
@@ -12709,7 +12722,7 @@ to the requested value.<wbr/> While the filter density is still changing,<wbr/>
                 
           <tr class="entry" id="controls_android.lens.focalLength">
             <td class="entry_name
-             " rowspan="3">
+             " rowspan="5">
               android.<wbr/>lens.<wbr/>focal<wbr/>Length
             </td>
             <td class="entry_type">
@@ -12765,6 +12778,19 @@ be set to MOVING.<wbr/></p>
             </td>
           </tr>
 
+          <tr class="entries_header">
+            <th class="th_details" colspan="6">HAL Implementation Details</th>
+          </tr>
+          <tr class="entry_cont">
+            <td class="entry_details" colspan="6">
+              <p>For a logical camera device supporting both optical and digital zoom,<wbr/> if focalLength and
+cropRegion change in the same request,<wbr/> the camera device must make sure that the new
+focalLength and cropRegion take effect in the same frame.<wbr/> This is to make sure that there
+is no visible field-of-view jump during zoom.<wbr/> For example,<wbr/> if cropRegion is applied
+immediately,<wbr/> but focalLength takes more than 1 frame to take effect,<wbr/> the camera device
+will delay the cropRegion so that it's synchronized with focalLength.<wbr/></p>
+            </td>
+          </tr>
 
           <tr class="entry_spacer"><td class="entry_spacer" colspan="7"></td></tr>
            <!-- end of entry -->
@@ -14236,7 +14262,7 @@ to the requested value.<wbr/> While the filter density is still changing,<wbr/>
                 
           <tr class="entry" id="dynamic_android.lens.focalLength">
             <td class="entry_name
-             " rowspan="3">
+             " rowspan="5">
               android.<wbr/>lens.<wbr/>focal<wbr/>Length
             </td>
             <td class="entry_type">
@@ -14292,6 +14318,19 @@ be set to MOVING.<wbr/></p>
             </td>
           </tr>
 
+          <tr class="entries_header">
+            <th class="th_details" colspan="6">HAL Implementation Details</th>
+          </tr>
+          <tr class="entry_cont">
+            <td class="entry_details" colspan="6">
+              <p>For a logical camera device supporting both optical and digital zoom,<wbr/> if focalLength and
+cropRegion change in the same request,<wbr/> the camera device must make sure that the new
+focalLength and cropRegion take effect in the same frame.<wbr/> This is to make sure that there
+is no visible field-of-view jump during zoom.<wbr/> For example,<wbr/> if cropRegion is applied
+immediately,<wbr/> but focalLength takes more than 1 frame to take effect,<wbr/> the camera device
+will delay the cropRegion so that it's synchronized with focalLength.<wbr/></p>
+            </td>
+          </tr>
 
           <tr class="entry_spacer"><td class="entry_spacer" colspan="7"></td></tr>
            <!-- end of entry -->
@@ -16962,7 +17001,11 @@ result.<wbr/></p>
 but this capability only covers the above list of controls.<wbr/></p>
 <p>If this is supported,<wbr/> <a href="#static_android.scaler.streamConfigurationMap">android.<wbr/>scaler.<wbr/>stream<wbr/>Configuration<wbr/>Map</a> will
 additionally return a min frame duration that is greater than
-zero for each supported size-format combination.<wbr/></p></span>
+zero for each supported size-format combination.<wbr/></p>
+<p>For camera devices with LOGICAL_<wbr/>MULTI_<wbr/>CAMERA capability,<wbr/> when the underlying active
+physical camera switches,<wbr/> exposureTime,<wbr/> sensitivity,<wbr/> and lens properties may change
+even if AE/<wbr/>AF is locked.<wbr/> However,<wbr/> the overall auto exposure and auto focus experience
+for users will be consistent.<wbr/> Refer to LOGICAL_<wbr/>MULTI_<wbr/>CAMERA capability for details.<wbr/></p></span>
                   </li>
                   <li>
                     <span class="entry_type_enum_name">MANUAL_POST_PROCESSING (v3.2)</span>
@@ -17008,7 +17051,11 @@ stages.<wbr/> This means the following controls are guaranteed to be supported:<
 <p>If auto white balance is enabled,<wbr/> then the camera device
 will accurately report the values applied by AWB in the result.<wbr/></p>
 <p>A given camera device may also support additional post-processing
-controls,<wbr/> but this capability only covers the above list of controls.<wbr/></p></span>
+controls,<wbr/> but this capability only covers the above list of controls.<wbr/></p>
+<p>For camera devices with LOGICAL_<wbr/>MULTI_<wbr/>CAMERA capability,<wbr/> when underlying active
+physical camera switches,<wbr/> tonemap,<wbr/> white balance,<wbr/> and shading map may change even if
+awb is locked.<wbr/> However,<wbr/> the overall post-processing experience for users will be
+consistent.<wbr/> Refer to LOGICAL_<wbr/>MULTI_<wbr/>CAMERA capability for details.<wbr/></p></span>
                   </li>
                   <li>
                     <span class="entry_type_enum_name">RAW (v3.2)</span>
@@ -17277,7 +17324,7 @@ camera in the list of supported camera devices.<wbr/></p>
 </li>
 <li>The SENSOR_<wbr/>INFO_<wbr/>TIMESTAMP_<wbr/>SOURCE of the logical device and physical devices must be
   the same.<wbr/></li>
-<li>The logical camera device must be LIMITED or higher device.<wbr/></li>
+<li>The logical camera must be LIMITED or higher device.<wbr/></li>
 </ul>
 <p>Both the logical camera device and its underlying physical devices support the
 mandatory stream combinations required for their device levels.<wbr/></p>
@@ -17296,7 +17343,55 @@ mandatory stream combinations required for their device levels.<wbr/></p>
 </ul>
 <p>Using physical streams in place of a logical stream of the same size and format will
 not slow down the frame rate of the capture,<wbr/> as long as the minimum frame duration
-of the physical and logical streams are the same.<wbr/></p></span>
+of the physical and logical streams are the same.<wbr/></p>
+<p>A logical camera device's dynamic metadata may contain
+<a href="#dynamic_android.logicalMultiCamera.activePhysicalId">android.<wbr/>logical<wbr/>Multi<wbr/>Camera.<wbr/>active<wbr/>Physical<wbr/>Id</a> to notify the application of the current
+active physical camera Id.<wbr/> An active physical camera is the physical camera from which
+the logical camera's main image data outputs (YUV or RAW) and metadata come from.<wbr/>
+In addition,<wbr/> this serves as an indication which physical camera is used to output to
+a RAW stream,<wbr/> or in case only physical cameras support RAW,<wbr/> which physical RAW stream
+the application should request.<wbr/></p>
+<p>Logical camera's static metadata tags below describe the default active physical
+camera.<wbr/> An active physical camera is default if it's used when application directly
+uses requests built from a template.<wbr/> All templates will default to the same active
+physical camera.<wbr/></p>
+<ul>
+<li><a href="#static_android.sensor.info.sensitivityRange">android.<wbr/>sensor.<wbr/>info.<wbr/>sensitivity<wbr/>Range</a></li>
+<li><a href="#static_android.sensor.info.colorFilterArrangement">android.<wbr/>sensor.<wbr/>info.<wbr/>color<wbr/>Filter<wbr/>Arrangement</a></li>
+<li><a href="#static_android.sensor.info.exposureTimeRange">android.<wbr/>sensor.<wbr/>info.<wbr/>exposure<wbr/>Time<wbr/>Range</a></li>
+<li><a href="#static_android.sensor.info.maxFrameDuration">android.<wbr/>sensor.<wbr/>info.<wbr/>max<wbr/>Frame<wbr/>Duration</a></li>
+<li><a href="#static_android.sensor.info.physicalSize">android.<wbr/>sensor.<wbr/>info.<wbr/>physical<wbr/>Size</a></li>
+<li><a href="#static_android.sensor.info.whiteLevel">android.<wbr/>sensor.<wbr/>info.<wbr/>white<wbr/>Level</a></li>
+<li><a href="#static_android.sensor.info.lensShadingApplied">android.<wbr/>sensor.<wbr/>info.<wbr/>lens<wbr/>Shading<wbr/>Applied</a></li>
+<li><a href="#static_android.sensor.referenceIlluminant1">android.<wbr/>sensor.<wbr/>reference<wbr/>Illuminant1</a></li>
+<li><a href="#static_android.sensor.referenceIlluminant2">android.<wbr/>sensor.<wbr/>reference<wbr/>Illuminant2</a></li>
+<li><a href="#static_android.sensor.calibrationTransform1">android.<wbr/>sensor.<wbr/>calibration<wbr/>Transform1</a></li>
+<li><a href="#static_android.sensor.calibrationTransform2">android.<wbr/>sensor.<wbr/>calibration<wbr/>Transform2</a></li>
+<li><a href="#static_android.sensor.colorTransform1">android.<wbr/>sensor.<wbr/>color<wbr/>Transform1</a></li>
+<li><a href="#static_android.sensor.colorTransform2">android.<wbr/>sensor.<wbr/>color<wbr/>Transform2</a></li>
+<li><a href="#static_android.sensor.forwardMatrix1">android.<wbr/>sensor.<wbr/>forward<wbr/>Matrix1</a></li>
+<li><a href="#static_android.sensor.forwardMatrix2">android.<wbr/>sensor.<wbr/>forward<wbr/>Matrix2</a></li>
+<li><a href="#static_android.sensor.blackLevelPattern">android.<wbr/>sensor.<wbr/>black<wbr/>Level<wbr/>Pattern</a></li>
+<li><a href="#static_android.sensor.maxAnalogSensitivity">android.<wbr/>sensor.<wbr/>max<wbr/>Analog<wbr/>Sensitivity</a></li>
+<li><a href="#static_android.sensor.opticalBlackRegions">android.<wbr/>sensor.<wbr/>optical<wbr/>Black<wbr/>Regions</a></li>
+<li><a href="#static_android.sensor.availableTestPatternModes">android.<wbr/>sensor.<wbr/>available<wbr/>Test<wbr/>Pattern<wbr/>Modes</a></li>
+<li><a href="#static_android.lens.info.hyperfocalDistance">android.<wbr/>lens.<wbr/>info.<wbr/>hyperfocal<wbr/>Distance</a></li>
+<li><a href="#static_android.lens.info.minimumFocusDistance">android.<wbr/>lens.<wbr/>info.<wbr/>minimum<wbr/>Focus<wbr/>Distance</a></li>
+<li><a href="#static_android.lens.info.focusDistanceCalibration">android.<wbr/>lens.<wbr/>info.<wbr/>focus<wbr/>Distance<wbr/>Calibration</a></li>
+<li><a href="#static_android.lens.poseRotation">android.<wbr/>lens.<wbr/>pose<wbr/>Rotation</a></li>
+<li><a href="#static_android.lens.poseTranslation">android.<wbr/>lens.<wbr/>pose<wbr/>Translation</a></li>
+<li><a href="#static_android.lens.intrinsicCalibration">android.<wbr/>lens.<wbr/>intrinsic<wbr/>Calibration</a></li>
+<li><a href="#static_android.lens.poseReference">android.<wbr/>lens.<wbr/>pose<wbr/>Reference</a></li>
+<li><a href="#static_android.lens.distortion">android.<wbr/>lens.<wbr/>distortion</a></li>
+</ul>
+<p>To maintain backward compatibility,<wbr/> the capture request and result metadata tags
+required for basic camera functionalities will be solely based on the
+logical camera capabiltity.<wbr/> Other request and result metadata tags,<wbr/> on the other
+hand,<wbr/> will be based on current active physical camera.<wbr/> For example,<wbr/> the physical
+cameras' sensor sensitivity and lens capability could be different from each other.<wbr/>
+So when the application manually controls sensor exposure time/<wbr/>gain,<wbr/> or does manual
+focus control,<wbr/> it must checks the current active physical camera's exposure,<wbr/> gain,<wbr/>
+and focus distance range.<wbr/></p></span>
                   </li>
                   <li>
                     <span class="entry_type_enum_name">MONOCHROME (v3.3)</span>
@@ -17409,6 +17504,12 @@ is composed of physical_<wbr/>camera_<wbr/>N_<wbr/>id,<wbr/> camera framework wi
 <li>
 <p>Camera HAL is strongly recommended to advertise camera devices with best feature,<wbr/>
 power,<wbr/> performance,<wbr/> and latency tradeoffs at the front of the camera id list.<wbr/></p>
+</li>
+<li>
+<p>Camera HAL may switch between physical cameras depending on focalLength or cropRegion.<wbr/>
+If physical cameras have different sizes,<wbr/> HAL must maintain a single logical camera
+active<wbr/>Array<wbr/>Size/<wbr/>pixel<wbr/>Array<wbr/>Size/<wbr/>pre<wbr/>Correction<wbr/>Active<wbr/>Array<wbr/>Size,<wbr/> and must do proper mapping
+between logical camera and underlying physical cameras.<wbr/></p>
 </li>
 </ul>
 <p>A MONOCHROME camera device must also advertise BACKWARD_<wbr/>COMPATIBLE capability,<wbr/> and must
@@ -30602,6 +30703,236 @@ For additional requirements on depth streams please consider
           <tr class="entry_spacer"><td class="entry_spacer" colspan="7"></td></tr>
            <!-- end of entry -->
         
+                
+          <tr class="entry" id="static_android.depth.availableDynamicDepthStreamConfigurations">
+            <td class="entry_name
+             " rowspan="5">
+              android.<wbr/>depth.<wbr/>available<wbr/>Dynamic<wbr/>Depth<wbr/>Stream<wbr/>Configurations
+            </td>
+            <td class="entry_type">
+                <span class="entry_type_name entry_type_name_enum">int32</span>
+                <span class="entry_type_container">x</span>
+
+                <span class="entry_type_array">
+                  n x 4
+                </span>
+              <span class="entry_type_visibility"> [ndk_public as streamConfiguration]</span>
+
+
+
+
+
+                <ul class="entry_type_enum">
+                  <li>
+                    <span class="entry_type_enum_name">OUTPUT (v3.4)</span>
+                  </li>
+                  <li>
+                    <span class="entry_type_enum_name">INPUT (v3.4)</span>
+                  </li>
+                </ul>
+
+            </td> <!-- entry_type -->
+
+            <td class="entry_description">
+              <p>The available dynamic depth dataspace stream
+configurations that this camera device supports
+(i.<wbr/>e.<wbr/> format,<wbr/> width,<wbr/> height,<wbr/> output/<wbr/>input stream).<wbr/></p>
+            </td>
+
+            <td class="entry_units">
+            </td>
+
+            <td class="entry_range">
+            </td>
+
+            <td class="entry_hal_version">
+              <p>3.<wbr/>4</p>
+            </td>
+
+            <td class="entry_tags">
+              <ul class="entry_tags">
+                  <li><a href="#tag_DEPTH">DEPTH</a></li>
+              </ul>
+            </td>
+
+          </tr>
+          <tr class="entries_header">
+            <th class="th_details" colspan="6">Details</th>
+          </tr>
+          <tr class="entry_cont">
+            <td class="entry_details" colspan="6">
+              <p>These are output stream configurations for use with
+dataSpace DYNAMIC_<wbr/>DEPTH.<wbr/> The configurations are
+listed as <code>(format,<wbr/> width,<wbr/> height,<wbr/> input?)</code> tuples.<wbr/></p>
+<p>Only devices that support depth output for at least
+the HAL_<wbr/>PIXEL_<wbr/>FORMAT_<wbr/>Y16 dense depth map along with
+HAL_<wbr/>PIXEL_<wbr/>FORMAT_<wbr/>BLOB with the same size or size with
+the same aspect ratio can have dynamic depth dataspace
+stream configuration.<wbr/> <a href="#static_android.depth.depthIsExclusive">android.<wbr/>depth.<wbr/>depth<wbr/>Is<wbr/>Exclusive</a> also
+needs to be set to FALSE.<wbr/></p>
+            </td>
+          </tr>
+
+          <tr class="entries_header">
+            <th class="th_details" colspan="6">HAL Implementation Details</th>
+          </tr>
+          <tr class="entry_cont">
+            <td class="entry_details" colspan="6">
+              <p>Do not set this property directly.<wbr/>
+It is populated by camera framework and must not be set
+at the HAL layer.<wbr/></p>
+            </td>
+          </tr>
+
+          <tr class="entry_spacer"><td class="entry_spacer" colspan="7"></td></tr>
+           <!-- end of entry -->
+        
+                
+          <tr class="entry" id="static_android.depth.availableDynamicDepthMinFrameDurations">
+            <td class="entry_name
+             " rowspan="5">
+              android.<wbr/>depth.<wbr/>available<wbr/>Dynamic<wbr/>Depth<wbr/>Min<wbr/>Frame<wbr/>Durations
+            </td>
+            <td class="entry_type">
+                <span class="entry_type_name">int64</span>
+                <span class="entry_type_container">x</span>
+
+                <span class="entry_type_array">
+                  4 x n
+                </span>
+              <span class="entry_type_visibility"> [ndk_public as streamConfigurationDuration]</span>
+
+
+
+
+
+
+            </td> <!-- entry_type -->
+
+            <td class="entry_description">
+              <p>This lists the minimum frame duration for each
+format/<wbr/>size combination for dynamic depth output streams.<wbr/></p>
+            </td>
+
+            <td class="entry_units">
+              (format,<wbr/> width,<wbr/> height,<wbr/> ns) x n
+            </td>
+
+            <td class="entry_range">
+            </td>
+
+            <td class="entry_hal_version">
+              <p>3.<wbr/>4</p>
+            </td>
+
+            <td class="entry_tags">
+              <ul class="entry_tags">
+                  <li><a href="#tag_DEPTH">DEPTH</a></li>
+              </ul>
+            </td>
+
+          </tr>
+          <tr class="entries_header">
+            <th class="th_details" colspan="6">Details</th>
+          </tr>
+          <tr class="entry_cont">
+            <td class="entry_details" colspan="6">
+              <p>This should correspond to the frame duration when only that
+stream is active,<wbr/> with all processing (typically in android.<wbr/>*.<wbr/>mode)
+set to either OFF or FAST.<wbr/></p>
+<p>When multiple streams are used in a request,<wbr/> the minimum frame
+duration will be max(individual stream min durations).<wbr/></p>
+<p>The minimum frame duration of a stream (of a particular format,<wbr/> size)
+is the same regardless of whether the stream is input or output.<wbr/></p>
+            </td>
+          </tr>
+
+          <tr class="entries_header">
+            <th class="th_details" colspan="6">HAL Implementation Details</th>
+          </tr>
+          <tr class="entry_cont">
+            <td class="entry_details" colspan="6">
+              <p>Do not set this property directly.<wbr/>
+It is populated by camera framework and must not be set
+at the HAL layer.<wbr/></p>
+            </td>
+          </tr>
+
+          <tr class="entry_spacer"><td class="entry_spacer" colspan="7"></td></tr>
+           <!-- end of entry -->
+        
+                
+          <tr class="entry" id="static_android.depth.availableDynamicDepthStallDurations">
+            <td class="entry_name
+             " rowspan="5">
+              android.<wbr/>depth.<wbr/>available<wbr/>Dynamic<wbr/>Depth<wbr/>Stall<wbr/>Durations
+            </td>
+            <td class="entry_type">
+                <span class="entry_type_name">int64</span>
+                <span class="entry_type_container">x</span>
+
+                <span class="entry_type_array">
+                  4 x n
+                </span>
+              <span class="entry_type_visibility"> [ndk_public as streamConfigurationDuration]</span>
+
+
+
+
+
+
+            </td> <!-- entry_type -->
+
+            <td class="entry_description">
+              <p>This lists the maximum stall duration for each
+output format/<wbr/>size combination for dynamic depth streams.<wbr/></p>
+            </td>
+
+            <td class="entry_units">
+              (format,<wbr/> width,<wbr/> height,<wbr/> ns) x n
+            </td>
+
+            <td class="entry_range">
+            </td>
+
+            <td class="entry_hal_version">
+              <p>3.<wbr/>4</p>
+            </td>
+
+            <td class="entry_tags">
+              <ul class="entry_tags">
+                  <li><a href="#tag_DEPTH">DEPTH</a></li>
+              </ul>
+            </td>
+
+          </tr>
+          <tr class="entries_header">
+            <th class="th_details" colspan="6">Details</th>
+          </tr>
+          <tr class="entry_cont">
+            <td class="entry_details" colspan="6">
+              <p>A stall duration is how much extra time would get added
+to the normal minimum frame duration for a repeating request
+that has streams with non-zero stall.<wbr/></p>
+<p>All dynamic depth output streams may have a nonzero stall
+duration.<wbr/></p>
+            </td>
+          </tr>
+
+          <tr class="entries_header">
+            <th class="th_details" colspan="6">HAL Implementation Details</th>
+          </tr>
+          <tr class="entry_cont">
+            <td class="entry_details" colspan="6">
+              <p>Do not set this property directly.<wbr/>
+It is populated by camera framework and must not be set
+at the HAL layer.<wbr/></p>
+            </td>
+          </tr>
+
+          <tr class="entry_spacer"><td class="entry_spacer" colspan="7"></td></tr>
+           <!-- end of entry -->
+        
         
 
       <!-- end of kind -->
@@ -30685,12 +31016,12 @@ For additional requirements on depth streams please consider
           </tr>
           <tr class="entry_cont">
             <td class="entry_details" colspan="6">
-              <p>For a logical camera,<wbr/> this is concatenation of all underlying physical camera ids.<wbr/>
-The null terminator for physical camera id must be preserved so that the whole string
-can be tokenized using '\0' to generate list of physical camera ids.<wbr/></p>
-<p>For example,<wbr/> if the physical camera ids of the logical camera are "2" and "3",<wbr/> the
+              <p>For a logical camera,<wbr/> this is concatenation of all underlying physical camera IDs.<wbr/>
+The null terminator for physical camera ID must be preserved so that the whole string
+can be tokenized using '\0' to generate list of physical camera IDs.<wbr/></p>
+<p>For example,<wbr/> if the physical camera IDs of the logical camera are "2" and "3",<wbr/> the
 value of this tag will be ['2',<wbr/> '\0',<wbr/> '3',<wbr/> '\0'].<wbr/></p>
-<p>The number of physical camera ids must be no less than 2.<wbr/></p>
+<p>The number of physical camera IDs must be no less than 2.<wbr/></p>
             </td>
           </tr>
 
@@ -30768,6 +31099,104 @@ onCaptureStarted callback.<wbr/></p>
             </td>
           </tr>
 
+
+          <tr class="entry_spacer"><td class="entry_spacer" colspan="7"></td></tr>
+           <!-- end of entry -->
+        
+        
+
+      <!-- end of kind -->
+      </tbody>
+      <tr><td colspan="7" class="kind">dynamic</td></tr>
+
+      <thead class="entries_header">
+        <tr>
+          <th class="th_name">Property Name</th>
+          <th class="th_type">Type</th>
+          <th class="th_description">Description</th>
+          <th class="th_units">Units</th>
+          <th class="th_range">Range</th>
+          <th class="th_hal_version">Initial HIDL HAL version</th>
+          <th class="th_tags">Tags</th>
+        </tr>
+      </thead>
+
+      <tbody>
+
+        
+
+        
+
+        
+
+        
+
+                
+          <tr class="entry" id="dynamic_android.logicalMultiCamera.activePhysicalId">
+            <td class="entry_name
+             " rowspan="5">
+              android.<wbr/>logical<wbr/>Multi<wbr/>Camera.<wbr/>active<wbr/>Physical<wbr/>Id
+            </td>
+            <td class="entry_type">
+                <span class="entry_type_name">byte</span>
+
+              <span class="entry_type_visibility"> [public as string]</span>
+
+
+
+
+
+
+            </td> <!-- entry_type -->
+
+            <td class="entry_description">
+              <p>String containing the ID of the underlying active physical camera.<wbr/></p>
+            </td>
+
+            <td class="entry_units">
+              UTF-8 null-terminated string
+            </td>
+
+            <td class="entry_range">
+            </td>
+
+            <td class="entry_hal_version">
+              <p>3.<wbr/>4</p>
+            </td>
+
+            <td class="entry_tags">
+              <ul class="entry_tags">
+                  <li><a href="#tag_LOGICALCAMERA">LOGICALCAMERA</a></li>
+              </ul>
+            </td>
+
+          </tr>
+          <tr class="entries_header">
+            <th class="th_details" colspan="6">Details</th>
+          </tr>
+          <tr class="entry_cont">
+            <td class="entry_details" colspan="6">
+              <p>The ID of the active physical camera that's backing the logical camera.<wbr/> All camera
+streams and metadata that are not physical camera specific will be originating from this
+physical camera.<wbr/> This must be one of valid physical IDs advertised in the physicalIds
+static tag.<wbr/></p>
+<p>For a logical camera made up of physical cameras where each camera's lenses have
+different characteristics,<wbr/> the camera device may choose to switch between the physical
+cameras when application changes FOCAL_<wbr/>LENGTH or SCALER_<wbr/>CROP_<wbr/>REGION.<wbr/>
+At the time of lens switch,<wbr/> this result metadata reflects the new active physical camera
+ID.<wbr/></p>
+            </td>
+          </tr>
+
+          <tr class="entries_header">
+            <th class="th_details" colspan="6">HAL Implementation Details</th>
+          </tr>
+          <tr class="entry_cont">
+            <td class="entry_details" colspan="6">
+              <p>Staring from HIDL ICameraDevice version 3.<wbr/>5,<wbr/> the tag must be available in the capture
+result metadata to indicate current active physical camera ID.<wbr/></p>
+            </td>
+          </tr>
 
           <tr class="entry_spacer"><td class="entry_spacer" colspan="7"></td></tr>
            <!-- end of entry -->
@@ -31334,6 +31763,9 @@ own requirements.<wbr/></p>
           <li><a href="#static_android.depth.availableDepthStreamConfigurations">android.depth.availableDepthStreamConfigurations</a> (static)</li>
           <li><a href="#static_android.depth.availableDepthMinFrameDurations">android.depth.availableDepthMinFrameDurations</a> (static)</li>
           <li><a href="#static_android.depth.availableDepthStallDurations">android.depth.availableDepthStallDurations</a> (static)</li>
+          <li><a href="#static_android.depth.availableDynamicDepthStreamConfigurations">android.depth.availableDynamicDepthStreamConfigurations</a> (static)</li>
+          <li><a href="#static_android.depth.availableDynamicDepthMinFrameDurations">android.depth.availableDynamicDepthMinFrameDurations</a> (static)</li>
+          <li><a href="#static_android.depth.availableDynamicDepthStallDurations">android.depth.availableDynamicDepthStallDurations</a> (static)</li>
         </ul>
       </li> <!-- tag_DEPTH -->
       <li id="tag_REPROC">REPROC - 
@@ -31360,6 +31792,7 @@ own requirements.<wbr/></p>
         <ul class="tags_entries">
           <li><a href="#static_android.logicalMultiCamera.physicalIds">android.logicalMultiCamera.physicalIds</a> (static)</li>
           <li><a href="#static_android.logicalMultiCamera.sensorSyncType">android.logicalMultiCamera.sensorSyncType</a> (static)</li>
+          <li><a href="#dynamic_android.logicalMultiCamera.activePhysicalId">android.logicalMultiCamera.activePhysicalId</a> (dynamic)</li>
         </ul>
       </li> <!-- tag_LOGICALCAMERA -->
       <li id="tag_FUTURE">FUTURE - 

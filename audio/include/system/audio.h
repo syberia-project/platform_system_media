@@ -85,6 +85,39 @@ typedef struct {
     char                 tags[AUDIO_ATTRIBUTES_TAGS_MAX_SIZE]; /* UTF8 */
 } __attribute__((packed)) audio_attributes_t; // sent through Binder;
 
+static const audio_attributes_t AUDIO_ATTRIBUTES_INITIALIZER = {
+    /* .content_type = */ AUDIO_CONTENT_TYPE_UNKNOWN,
+    /* .usage = */ AUDIO_USAGE_UNKNOWN,
+    /* .source = */ AUDIO_SOURCE_DEFAULT,
+    /* .flags = */ AUDIO_INPUT_FLAG_NONE,
+    /* .tags = */ ""
+};
+
+static inline audio_attributes_t attributes_initializer(audio_usage_t usage)
+{
+    audio_attributes_t attributes = AUDIO_ATTRIBUTES_INITIALIZER;
+    attributes.usage = usage;
+    return attributes;
+}
+
+static inline void audio_flags_to_audio_output_flags(
+                                           const audio_flags_mask_t audio_flags,
+                                           audio_output_flags_t *flags)
+{
+    if ((audio_flags & AUDIO_FLAG_HW_AV_SYNC) != 0) {
+        *flags = (audio_output_flags_t)(*flags |
+            AUDIO_OUTPUT_FLAG_HW_AV_SYNC | AUDIO_OUTPUT_FLAG_DIRECT);
+    }
+    if ((audio_flags & AUDIO_FLAG_LOW_LATENCY) != 0) {
+        *flags = (audio_output_flags_t)(*flags | AUDIO_OUTPUT_FLAG_FAST);
+    }
+    // check deep buffer after flags have been modified above
+    if (*flags == AUDIO_OUTPUT_FLAG_NONE && (audio_flags & AUDIO_FLAG_DEEP_BUFFER) != 0) {
+        *flags = AUDIO_OUTPUT_FLAG_DEEP_BUFFER;
+    }
+}
+
+
 /* a unique ID allocated by AudioFlinger for use as an audio_io_handle_t, audio_session_t,
  * effect ID (int), audio_module_handle_t, and audio_patch_handle_t.
  * Audio port IDs (audio_port_handle_t) are allocated by AudioPolicy
@@ -1014,6 +1047,17 @@ static inline bool audio_is_valid_format(audio_format_t format)
     case AUDIO_FORMAT_MAT_1_0:
     case AUDIO_FORMAT_MAT_2_0:
     case AUDIO_FORMAT_MAT_2_1:
+    case AUDIO_FORMAT_SBC:
+    case AUDIO_FORMAT_APTX:
+    case AUDIO_FORMAT_APTX_HD:
+    case AUDIO_FORMAT_AAC_LATM:
+    case AUDIO_FORMAT_AAC_LATM_LC:
+    case AUDIO_FORMAT_AAC_LATM_HE_V1:
+    case AUDIO_FORMAT_AAC_LATM_HE_V2:
+    case AUDIO_FORMAT_CELT:
+    case AUDIO_FORMAT_APTX_ADAPTIVE:
+    case AUDIO_FORMAT_LHDC:
+    case AUDIO_FORMAT_LHDC_LL:
         return true;
     default:
         return false;
