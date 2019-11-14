@@ -31,7 +31,7 @@
 
 /*
  * Annotation to tell clang that we intend to fall through from one case to
- * another in a switch (for c++ files). Sourced from android-base/macros.h.
+ * another in a switch. Sourced from android-base/macros.h.
  */
 #ifndef FALLTHROUGH_INTENDED
 #ifdef __cplusplus
@@ -78,6 +78,7 @@ enum {
     AUDIO_FLAG_NO_MEDIA_PROJECTION        = 0X400,
     AUDIO_FLAG_MUTE_HAPTIC                = 0x800,
     AUDIO_FLAG_NO_SYSTEM_CAPTURE          = 0X1000,
+    AUDIO_FLAG_CAPTURE_PRIVATE            = 0X2000,
 };
 
 /* Audio attributes */
