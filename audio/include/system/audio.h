@@ -154,6 +154,13 @@ static inline audio_unique_id_use_t audio_unique_id_get_use(audio_unique_id_t id
 /* Reserved audio_unique_id_t values.  FIXME: not a complete list. */
 #define AUDIO_UNIQUE_ID_ALLOCATE AUDIO_SESSION_ALLOCATE
 
+/* returns true if the audio session ID corresponds to a global
+ * effect sessions (e.g. OUTPUT_MIX, OUTPUT_STAGE, or DEVICE).
+ */
+static inline bool audio_is_global_session(audio_session_t session) {
+    return session <= AUDIO_SESSION_OUTPUT_MIX;
+}
+
 /* A channel mask per se only defines the presence or absence of a channel, not the order.
  * But see AUDIO_INTERLEAVE_* below for the platform convention of order.
  *
@@ -1180,6 +1187,23 @@ static inline bool audio_is_valid_format(audio_format_t format)
     case AUDIO_FORMAT_LHDC:
     case AUDIO_FORMAT_LHDC_LL:
     case AUDIO_FORMAT_APTX_TWSP:
+        return true;
+    default:
+        return false;
+    }
+}
+
+static inline bool audio_is_iec61937_compatible(audio_format_t format)
+{
+    switch (format) {
+    case AUDIO_FORMAT_AC3:       // IEC 61937-3:2017
+    case AUDIO_FORMAT_AC4:       // IEC 61937-14:2017
+    case AUDIO_FORMAT_E_AC3:     // IEC 61937-3:2017
+    case AUDIO_FORMAT_E_AC3_JOC: // IEC 61937-3:2017
+    case AUDIO_FORMAT_MAT:       // IEC 61937-9:2017
+    case AUDIO_FORMAT_MAT_1_0:   // IEC 61937-9:2017
+    case AUDIO_FORMAT_MAT_2_0:   // IEC 61937-9:2017
+    case AUDIO_FORMAT_MAT_2_1:   // IEC 61937-9:2017
         return true;
     default:
         return false;
