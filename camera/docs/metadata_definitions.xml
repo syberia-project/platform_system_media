@@ -3198,7 +3198,7 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
 
           For a logical multi-camera, bokeh may be implemented by stereo vision from sub-cameras
           with different field of view. As a result, when bokeh mode is enabled, the camera device
-          may override android.scaler.CropRegion, and the field of view will be smaller than when
+          may override android.scaler.cropRegion, and the field of view will be smaller than when
           bokeh mode is off.
           </details>
         </entry>
@@ -3223,7 +3223,7 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
           </range>
           <details>
             If the camera device supports zoom-out from 1x zoom, minZoom will be less than 1.0, and
-            setting android.control.zoomRation to values less than 1.0 increases the camera's field
+            setting android.control.zoomRatio to values less than 1.0 increases the camera's field
             of view.
           </details>
           <hal_details>
@@ -4273,6 +4273,10 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
 
              where `p` is in the device sensor coordinate system, and
              `p'` is in the camera-oriented coordinate system.
+
+             If android.lens.poseReference is UNDEFINED, the quaternion rotation cannot
+             be accurately represented by the camera device, and will be represented by
+             default values matching its default facing.
           </details>
           <tag id="DEPTH" />
         </entry>
@@ -4315,6 +4319,9 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
             When android.lens.poseReference is GYROSCOPE, then this position is relative to
             the center of the primary gyroscope on the device. The axis definitions are the same as
             with PRIMARY_CAMERA.
+
+            When android.lens.poseReference is UNDEFINED, this position cannot be accurately
+            represented by the camera device, and will be represented as `(0, 0, 0)`.
           </details>
           <tag id="DEPTH" />
         </entry>
@@ -4553,9 +4560,20 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
             primary gyroscope of this Android device.
             </notes>
             </value>
+            <value hal_version="3.5">UNDEFINED
+            <notes>The camera device cannot represent the values of android.lens.poseTranslation
+            and android.lens.poseRotation accurately enough. One such example is a camera device
+            on the cover of a foldable phone: in order to measure the pose translation and rotation,
+            some kind of hinge position sensor would be needed.
+
+            The value of android.lens.poseTranslation must be all zeros, and
+            android.lens.poseRotation must be values matching its default facing.
+            </notes>
+            </value>
           </enum>
           <description>
-            The origin for android.lens.poseTranslation.
+            The origin for android.lens.poseTranslation, and the accuracy of
+            android.lens.poseTranslation and android.lens.poseRotation.
           </description>
           <details>
             Different calibration methods and use cases can produce better or worse results
@@ -6202,37 +6220,65 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
             system always follows that of android.sensor.info.activeArraySize, with `(0, 0)` being
             the top-left pixel of the active array.
 
-            For devices supporting android.distortionCorrection.mode control, the coordinate
-            system depends on the mode being set.
-            When the distortion correction mode is OFF, the coordinate system follows
-            android.sensor.info.preCorrectionActiveArraySize, with
-            `(0, 0)` being the top-left pixel of the pre-correction active array.
-            When the distortion correction mode is not OFF, the coordinate system follows
-            android.sensor.info.activeArraySize, with
-            `(0, 0)` being the top-left pixel of the active array.
+            For devices supporting android.distortionCorrection.mode control, the coordinate system
+            depends on the mode being set.  When the distortion correction mode is OFF, the
+            coordinate system follows android.sensor.info.preCorrectionActiveArraySize, with `(0,
+            0)` being the top-left pixel of the pre-correction active array.  When the distortion
+            correction mode is not OFF, the coordinate system follows
+            android.sensor.info.activeArraySize, with `(0, 0)` being the top-left pixel of the
+            active array.
 
-            Output streams use this rectangle to produce their output,
-            cropping to a smaller region if necessary to maintain the
-            stream's aspect ratio, then scaling the sensor input to
+            Output streams use this rectangle to produce their output, cropping to a smaller region
+            if necessary to maintain the stream's aspect ratio, then scaling the sensor input to
             match the output's configured resolution.
 
-            The crop region is applied after the RAW to other color
-            space (e.g. YUV) conversion. Since raw streams
-            (e.g. RAW16) don't have the conversion stage, they are not
+            The crop region is applied after the RAW to other color space (e.g. YUV)
+            conversion. Since raw streams (e.g. RAW16) don't have the conversion stage, they are not
             croppable. The crop region will be ignored by raw streams.
 
-            For non-raw streams, any additional per-stream cropping will
-            be done to maximize the final pixel area of the stream.
+            For non-raw streams, any additional per-stream cropping will be done to maximize the
+            final pixel area of the stream.
 
-            For example, if the crop region is set to a 4:3 aspect
-            ratio, then 4:3 streams will use the exact crop
-            region. 16:9 streams will further crop vertically
-            (letterbox).
+            For example, if the crop region is set to a 4:3 aspect ratio, then 4:3 streams will use
+            the exact crop region. 16:9 streams will further crop vertically (letterbox).
 
-            Conversely, if the crop region is set to a 16:9, then 4:3
-            outputs will crop horizontally (pillarbox), and 16:9
-            streams will match exactly. These additional crops will
-            be centered within the crop region.
+            Conversely, if the crop region is set to a 16:9, then 4:3 outputs will crop horizontally
+            (pillarbox), and 16:9 streams will match exactly. These additional crops will be
+            centered within the crop region.
+
+            To illustrate, here are several scenarios of different crop regions and output streams,
+            for a hypothetical camera device with an active array of size `(2000,1500)`.  Note that
+            several of these examples use non-centered crop regions for ease of illustration; such
+            regions are only supported on devices with FREEFORM capability
+            (android.scaler.croppingType `== FREEFORM`), but this does not affect the way the crop
+            rules work otherwise.
+
+            * Camera Configuration:
+                * Active array size: `2000x1500` (3 MP, 4:3 aspect ratio)
+                * Output stream #1: `640x480` (VGA, 4:3 aspect ratio)
+                * Output stream #2: `1280x720` (720p, 16:9 aspect ratio)
+            * Case #1: 4:3 crop region with 2x digital zoom
+                * Crop region: `Rect(500, 375, 1500, 1125) // (left, top, right, bottom)`
+                * ![4:3 aspect ratio crop diagram](android.scaler.cropRegion/crop-region-43-ratio.png)
+                * `640x480` stream source area: `(500, 375, 1500, 1125)` (equal to crop region)
+                * `1280x720` stream source area: `(500, 469, 1500, 1031)` (letterboxed)
+            * Case #2: 16:9 crop region with ~1.5x digital zoom.
+                * Crop region: `Rect(500, 375, 1833, 1125)`
+                * ![16:9 aspect ratio crop diagram](android.scaler.cropRegion/crop-region-169-ratio.png)
+                * `640x480` stream source area: `(666, 375, 1666, 1125)` (pillarboxed)
+                * `1280x720` stream source area: `(500, 375, 1833, 1125)` (equal to crop region)
+            * Case #3: 1:1 crop region with ~2.6x digital zoom.
+                * Crop region: `Rect(500, 375, 1250, 1125)`
+                * ![1:1 aspect ratio crop diagram](android.scaler.cropRegion/crop-region-11-ratio.png)
+                * `640x480` stream source area: `(500, 469, 1250, 1031)` (letterboxed)
+                * `1280x720` stream source area: `(500, 543, 1250, 957)` (letterboxed)
+            * Case #4: Replace `640x480` stream with `1024x1024` stream, with 4:3 crop region:
+                * Crop region: `Rect(500, 375, 1500, 1125)`
+                * ![Square output, 4:3 aspect ratio crop diagram](android.scaler.cropRegion/crop-region-43-square-ratio.png)
+                * `1024x1024` stream source area: `(625, 375, 1375, 1125)` (pillarboxed)
+                * `1280x720` stream source area: `(500, 469, 1500, 1031)` (letterboxed)
+                * Note that in this case, neither of the two outputs is a subset of the other, with
+                  each containing image data the other doesn't have.
 
             If the coordinate system is android.sensor.info.activeArraySize, the width and height
             of the crop region cannot be set to be smaller than
@@ -6246,10 +6292,8 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
             `floor( preCorrectionActiveArraySize.height / android.scaler.availableMaxDigitalZoom )`,
             respectively.
 
-            The camera device may adjust the crop region to account
-            for rounding and other hardware requirements; the final
-            crop region used will be included in the output capture
-            result.
+            The camera device may adjust the crop region to account for rounding and other hardware
+            requirements; the final crop region used will be included in the output capture result.
 
             Starting from API level 30, it's strongly recommended to use android.control.zoomRatio
             to take advantage of better support for zoom with logical multi-camera. The benefits
@@ -6257,8 +6301,8 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
             zoom-out from 1.0x. When using android.control.zoomRatio for zoom, the crop region in
             the capture request must be either letterboxing or pillarboxing (but not both). The
             coordinate system is post-zoom, meaning that the activeArraySize or
-            preCorrectionActiveArraySize covers the camera device's field of view "after" zoom.
-            See android.control.zoomRatio for details.
+            preCorrectionActiveArraySize covers the camera device's field of view "after" zoom.  See
+            android.control.zoomRatio for details.
           </details>
           <ndk_details>
             The data representation is int[4], which maps to (left, top, width, height).
@@ -7655,12 +7699,17 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
             <enum>
               <value>UNKNOWN
                 <notes>
-                Timestamps from android.sensor.timestamp are in nanoseconds and monotonic,
-                but can not be compared to timestamps from other subsystems
-                (e.g. accelerometer, gyro etc.), or other instances of the same or different
-                camera devices in the same system. Timestamps between streams and results for
-                a single camera instance are comparable, and the timestamps for all buffers
-                and the result metadata generated by a single capture are identical.
+                Timestamps from android.sensor.timestamp are in nanoseconds and monotonic, but can
+                not be compared to timestamps from other subsystems (e.g. accelerometer, gyro etc.),
+                or other instances of the same or different camera devices in the same system with
+                accuracy. However, the timestamps are roughly in the same timebase as 
+                {@link android.os.SystemClock#uptimeMillis}.  The accuracy is sufficient for tasks
+                like A/V synchronization for video recording, at least, and the timestamps can be
+                directly used together with timestamps from the audio subsystem for that task.
+
+                Timestamps between streams and results for a single camera instance are comparable,
+                and the timestamps for all buffers and the result metadata generated by a single
+                capture are identical.
                 </notes>
               </value>
               <value>REALTIME
@@ -7668,6 +7717,17 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
                 Timestamps from android.sensor.timestamp are in the same timebase as
                 {@link android.os.SystemClock#elapsedRealtimeNanos},
                 and they can be compared to other timestamps using that base.
+
+                When buffers from a REALTIME device are passed directly to a video encoder from the
+                camera, automatic compensation is done to account for differing timebases of the
+                audio and camera subsystems.  If the application is receiving buffers and then later
+                sending them to a video encoder or other application where they are compared with
+                audio subsystem timestamps or similar, this compensation is not present.  In those
+                cases, applications need to adjust the timestamps themselves.  Since {@link
+                android.os.SystemClock#elapsedRealtimeNanos} and {@link
+                android.os.SystemClock#uptimeMillis} only diverge while the device is asleep, an
+                offset between the two sources can be measured once per active session and applied
+                to timestamps for sufficient accuracy for A/V sync.
                 </notes>
               </value>
             </enum>
