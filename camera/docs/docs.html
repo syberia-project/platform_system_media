@@ -767,6 +767,8 @@
             <li
             ><a href="#static_android.scaler.mandatoryStreamCombinations">android.scaler.mandatoryStreamCombinations</a></li>
             <li
+            ><a href="#static_android.scaler.mandatoryConcurrentStreamCombinations">android.scaler.mandatoryConcurrentStreamCombinations</a></li>
+            <li
             ><a href="#static_android.scaler.availableRotateAndCropModes">android.scaler.availableRotateAndCropModes</a></li>
           </ul>
         </li>
@@ -19594,7 +19596,7 @@ details.<wbr/></p>
             <td class="entry_type">
                 <span class="entry_type_name entry_type_name_enum">byte</span>
 
-              <span class="entry_type_visibility"> [public]</span>
+              <span class="entry_type_visibility"> [hidden]</span>
 
 
 
@@ -19734,7 +19736,8 @@ outputs for the following parameters:</p>
           </tr>
           <tr class="entry_cont">
             <td class="entry_details" colspan="6">
-              <p>ROTATE_<wbr/>AND_<wbr/>CROP_<wbr/>AUTO will never be sent to the HAL,<wbr/> though it must be set as the default
+              <p>Not ready for use in Android 11.<wbr/></p>
+<p>ROTATE_<wbr/>AND_<wbr/>CROP_<wbr/>AUTO will never be sent to the HAL,<wbr/> though it must be set as the default
 value in all the capture request templates by the HAL.<wbr/>  The camera service will
 translate AUTO to a specific rotation value based on the current application's
 multi-window state and its support of resizability.<wbr/></p>
@@ -21588,6 +21591,81 @@ backward compatible.<wbr/></p>
            <!-- end of entry -->
         
                 
+          <tr class="entry" id="static_android.scaler.mandatoryConcurrentStreamCombinations">
+            <td class="entry_name
+             " rowspan="5">
+              android.<wbr/>scaler.<wbr/>mandatory<wbr/>Concurrent<wbr/>Stream<wbr/>Combinations
+            </td>
+            <td class="entry_type">
+                <span class="entry_type_name">int32</span>
+                <span class="entry_type_container">x</span>
+
+                <span class="entry_type_array">
+                  n
+                </span>
+              <span class="entry_type_visibility"> [java_public as mandatoryStreamCombination]</span>
+
+              <span class="entry_type_synthetic">[synthetic] </span>
+
+
+
+
+
+            </td> <!-- entry_type -->
+
+            <td class="entry_description">
+              <p>An array of mandatory concurrent stream combinations.<wbr/>
+This is an app-readable conversion of the concurrent mandatory stream combination
+<a href="https://developer.android.com/reference/android/hardware/camera2/CameraDevice.html#createCaptureSession">tables</a>.<wbr/></p>
+            </td>
+
+            <td class="entry_units">
+            </td>
+
+            <td class="entry_range">
+            </td>
+
+            <td class="entry_hal_version">
+              <p>3.<wbr/>2</p>
+            </td>
+
+            <td class="entry_tags">
+            </td>
+
+          </tr>
+          <tr class="entries_header">
+            <th class="th_details" colspan="6">Details</th>
+          </tr>
+          <tr class="entry_cont">
+            <td class="entry_details" colspan="6">
+              <p>The array of
+<a href="https://developer.android.com/reference/android/hardware/camera2/params/MandatoryStreamCombination.html">combinations</a> is
+generated according to the documented
+<a href="https://developer.android.com/reference/android/hardware/camera2/CameraDevice.html#createCaptureSession">guideline</a> for each
+device which has its Id present in the set returned by
+<a href="https://developer.android.com/reference/android/hardware/camera2/CameraManager.html#getConcurrentCameraIds">CameraManager#getConcurrentCameraIds</a>.<wbr/>
+Clients can use the array as a quick reference to find an appropriate camera stream
+combination.<wbr/>
+The mandatory stream combination array will be {@code null} in case the device is not a
+part of at least one set of combinations returned by
+<a href="https://developer.android.com/reference/android/hardware/camera2/CameraManager.html#getConcurrentCameraIds">CameraManager#getConcurrentCameraIds</a>.<wbr/></p>
+            </td>
+          </tr>
+
+          <tr class="entries_header">
+            <th class="th_details" colspan="6">HAL Implementation Details</th>
+          </tr>
+          <tr class="entry_cont">
+            <td class="entry_details" colspan="6">
+              <p>Do not set this property directly
+(it is synthetic and will not be available at the HAL layer).<wbr/></p>
+            </td>
+          </tr>
+
+          <tr class="entry_spacer"><td class="entry_spacer" colspan="7"></td></tr>
+           <!-- end of entry -->
+        
+                
           <tr class="entry" id="static_android.scaler.availableRotateAndCropModes">
             <td class="entry_name
              " rowspan="3">
@@ -21600,7 +21678,7 @@ backward compatible.<wbr/></p>
                 <span class="entry_type_array">
                   n
                 </span>
-              <span class="entry_type_visibility"> [public as enumList]</span>
+              <span class="entry_type_visibility"> [hidden as enumList]</span>
 
 
 
@@ -21635,7 +21713,7 @@ backward compatible.<wbr/></p>
           <tr class="entry_cont">
             <td class="entry_details" colspan="6">
               <p>This entry lists the valid modes for <a href="#controls_android.scaler.rotateAndCrop">android.<wbr/>scaler.<wbr/>rotate<wbr/>And<wbr/>Crop</a> for this camera device.<wbr/></p>
-<p>Starting with API level 30,<wbr/> all devices will list at least <code>ROTATE_<wbr/>AND_<wbr/>CROP_<wbr/>NONE</code>.<wbr/>
+<p>Starting at some future API level,<wbr/> all devices will list at least <code>ROTATE_<wbr/>AND_<wbr/>CROP_<wbr/>NONE</code>.<wbr/>
 Devices with support for rotate-and-crop will additionally list at least
 <code>ROTATE_<wbr/>AND_<wbr/>CROP_<wbr/>AUTO</code> and <code>ROTATE_<wbr/>AND_<wbr/>CROP_<wbr/>90</code>.<wbr/></p>
             </td>
@@ -21890,7 +21968,7 @@ details.<wbr/></p>
             <td class="entry_type">
                 <span class="entry_type_name entry_type_name_enum">byte</span>
 
-              <span class="entry_type_visibility"> [public]</span>
+              <span class="entry_type_visibility"> [hidden]</span>
 
 
 
@@ -22030,7 +22108,8 @@ outputs for the following parameters:</p>
           </tr>
           <tr class="entry_cont">
             <td class="entry_details" colspan="6">
-              <p>ROTATE_<wbr/>AND_<wbr/>CROP_<wbr/>AUTO will never be sent to the HAL,<wbr/> though it must be set as the default
+              <p>Not ready for use in Android 11.<wbr/></p>
+<p>ROTATE_<wbr/>AND_<wbr/>CROP_<wbr/>AUTO will never be sent to the HAL,<wbr/> though it must be set as the default
 value in all the capture request templates by the HAL.<wbr/>  The camera service will
 translate AUTO to a specific rotation value based on the current application's
 multi-window state and its support of resizability.<wbr/></p>
