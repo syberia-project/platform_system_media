@@ -5842,8 +5842,9 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
                   1. One Jpeg ImageReader, any resolution: the camera device is
                      allowed to slow down JPEG output speed by 50% if there is any ongoing offline
                      session.
-                  1. One ImageWriter surface of private format, any resolution if the device supports
-                     PRIVATE_REPROCESSING capability
+                  1. If the device supports PRIVATE_REPROCESSING, one pair of ImageWriter/ImageReader
+                     surfaces of private format, with the same resolution that is larger or equal to
+                     the JPEG ImageReader resolution above.
               * Alternatively, the active camera session above can be replaced by an legacy
               {@link android.hardware.Camera Camera} with the following parameter settings:
                   1. Preview size up to 1920 width
@@ -7333,7 +7334,36 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
           (it is synthetic and will not be available at the HAL layer).
           </hal_details>
         </entry>
-        <entry name="availableRotateAndCropModes" type="byte" visibility="public"
+        <entry name="mandatoryConcurrentStreamCombinations" type="int32" visibility="java_public"
+          synthetic="true" container="array" typedef="mandatoryStreamCombination">
+          <array>
+            <size>n</size>
+          </array>
+          <description>
+          An array of mandatory concurrent stream combinations.
+          This is an app-readable conversion of the concurrent mandatory stream combination
+          {@link android.hardware.camera2.CameraDevice#createCaptureSession tables}.
+          </description>
+          <details>
+          The array of
+          {@link android.hardware.camera2.params.MandatoryStreamCombination combinations} is
+          generated according to the documented
+          {@link android.hardware.camera2.CameraDevice#createCaptureSession guideline} for each
+          device which has its Id present in the set returned by
+          {@link android.hardware.camera2.CameraManager#getConcurrentCameraIds}.
+          Clients can use the array as a quick reference to find an appropriate camera stream
+          combination.
+          The mandatory stream combination array will be {@code null} in case the device is not a
+          part of at least one set of combinations returned by
+          {@link android.hardware.camera2.CameraManager#getConcurrentCameraIds}.
+          </details>
+          <hal_details>
+          Do not set this property directly
+          (it is synthetic and will not be available at the HAL layer).
+          </hal_details>
+        </entry>
+
+        <entry name="availableRotateAndCropModes" type="byte" visibility="hidden"
                type_notes="list of enums" container="array" typedef="enumList"
                hal_version="3.5">
           <array>
@@ -7346,14 +7376,14 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
           <details>
             This entry lists the valid modes for android.scaler.rotateAndCrop for this camera device.
 
-            Starting with API level 30, all devices will list at least `ROTATE_AND_CROP_NONE`.
+            Starting at some future API level, all devices will list at least `ROTATE_AND_CROP_NONE`.
             Devices with support for rotate-and-crop will additionally list at least
             `ROTATE_AND_CROP_AUTO` and `ROTATE_AND_CROP_90`.
           </details>
         </entry>
       </static>
       <controls>
-        <entry name="rotateAndCrop" type="byte" visibility="public" enum="true"
+        <entry name="rotateAndCrop" type="byte" visibility="hidden" enum="true"
                hal_version="3.5">
           <enum>
             <value>NONE
@@ -7465,6 +7495,8 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
             * 1280x720 stream: top-left: `(711, 375)` on active array, size: `(1280, 720)`, upscaled 1.71x from sensor pixels
           </details>
           <hal_details>
+            Not ready for use in Android 11.
+
             ROTATE_AND_CROP_AUTO will never be sent to the HAL, though it must be set as the default
             value in all the capture request templates by the HAL.  The camera service will
             translate AUTO to a specific rotation value based on the current application's
@@ -7854,7 +7886,7 @@ xsi:schemaLocation="http://schemas.android.com/service/camera/metadata/ metadata
                 Timestamps from android.sensor.timestamp are in nanoseconds and monotonic, but can
                 not be compared to timestamps from other subsystems (e.g. accelerometer, gyro etc.),
                 or other instances of the same or different camera devices in the same system with
-                accuracy. However, the timestamps are roughly in the same timebase as 
+                accuracy. However, the timestamps are roughly in the same timebase as
                 {@link android.os.SystemClock#uptimeMillis}.  The accuracy is sufficient for tasks
                 like A/V synchronization for video recording, at least, and the timestamps can be
                 directly used together with timestamps from the audio subsystem for that task.
