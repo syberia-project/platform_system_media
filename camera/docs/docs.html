@@ -4857,11 +4857,13 @@ crop to achieve aspect ratios different than the native camera sensor.<wbr/></p>
 <p>By using this control,<wbr/> the application gains a simpler way to control zoom,<wbr/> which can
 be a combination of optical and digital zoom.<wbr/> For example,<wbr/> a multi-camera system may
 contain more than one lens with different focal lengths,<wbr/> and the user can use optical
-zoom by switching between lenses.<wbr/> Using zoomRatio has benefits in the scenarios below:
-<em> Zooming in from a wide-angle lens to a telephoto lens: A floating-point ratio provides
-  better precision compared to an integer value of <a href="#controls_android.scaler.cropRegion">android.<wbr/>scaler.<wbr/>crop<wbr/>Region</a>.<wbr/>
-</em> Zooming out from a wide lens to an ultrawide lens: zoomRatio supports zoom-out whereas
-  <a href="#controls_android.scaler.cropRegion">android.<wbr/>scaler.<wbr/>crop<wbr/>Region</a> doesn't.<wbr/></p>
+zoom by switching between lenses.<wbr/> Using zoomRatio has benefits in the scenarios below:</p>
+<ul>
+<li>Zooming in from a wide-angle lens to a telephoto lens: A floating-point ratio provides
+  better precision compared to an integer value of <a href="#controls_android.scaler.cropRegion">android.<wbr/>scaler.<wbr/>crop<wbr/>Region</a>.<wbr/></li>
+<li>Zooming out from a wide lens to an ultrawide lens: zoomRatio supports zoom-out whereas
+  <a href="#controls_android.scaler.cropRegion">android.<wbr/>scaler.<wbr/>crop<wbr/>Region</a> doesn't.<wbr/></li>
+</ul>
 <p>To illustrate,<wbr/> here are several scenarios of different zoom ratios,<wbr/> crop regions,<wbr/>
 and output streams,<wbr/> for a hypothetical camera device with an active array of size
 <code>(2000,<wbr/>1500)</code>.<wbr/></p>
@@ -10492,11 +10494,13 @@ crop to achieve aspect ratios different than the native camera sensor.<wbr/></p>
 <p>By using this control,<wbr/> the application gains a simpler way to control zoom,<wbr/> which can
 be a combination of optical and digital zoom.<wbr/> For example,<wbr/> a multi-camera system may
 contain more than one lens with different focal lengths,<wbr/> and the user can use optical
-zoom by switching between lenses.<wbr/> Using zoomRatio has benefits in the scenarios below:
-<em> Zooming in from a wide-angle lens to a telephoto lens: A floating-point ratio provides
-  better precision compared to an integer value of <a href="#controls_android.scaler.cropRegion">android.<wbr/>scaler.<wbr/>crop<wbr/>Region</a>.<wbr/>
-</em> Zooming out from a wide lens to an ultrawide lens: zoomRatio supports zoom-out whereas
-  <a href="#controls_android.scaler.cropRegion">android.<wbr/>scaler.<wbr/>crop<wbr/>Region</a> doesn't.<wbr/></p>
+zoom by switching between lenses.<wbr/> Using zoomRatio has benefits in the scenarios below:</p>
+<ul>
+<li>Zooming in from a wide-angle lens to a telephoto lens: A floating-point ratio provides
+  better precision compared to an integer value of <a href="#controls_android.scaler.cropRegion">android.<wbr/>scaler.<wbr/>crop<wbr/>Region</a>.<wbr/></li>
+<li>Zooming out from a wide lens to an ultrawide lens: zoomRatio supports zoom-out whereas
+  <a href="#controls_android.scaler.cropRegion">android.<wbr/>scaler.<wbr/>crop<wbr/>Region</a> doesn't.<wbr/></li>
+</ul>
 <p>To illustrate,<wbr/> here are several scenarios of different zoom ratios,<wbr/> crop regions,<wbr/>
 and output streams,<wbr/> for a hypothetical camera device with an active array of size
 <code>(2000,<wbr/>1500)</code>.<wbr/></p>
@@ -25932,8 +25936,8 @@ sensor interconnect bus (such as CSI2) or memory.<wbr/></p>
             </td> <!-- entry_type -->
 
             <td class="entry_description">
-              <p>Duration between the start of first row exposure
-and the start of last row exposure.<wbr/></p>
+              <p>Duration between the start of exposure for the first row of the image sensor,<wbr/>
+and the start of exposure for one past the last row of the image sensor.<wbr/></p>
             </td>
 
             <td class="entry_units">
@@ -25961,12 +25965,22 @@ and the start of last row exposure.<wbr/></p>
           </tr>
           <tr class="entry_cont">
             <td class="entry_details" colspan="6">
-              <p>This is the exposure time skew between the first and last
-row exposure start times.<wbr/> The first row and the last row are
-the first and last rows inside of the
+              <p>This is the exposure time skew between the first and <code>(last+1)</code> row exposure start times.<wbr/> The
+first row and the last row are the first and last rows inside of the
 <a href="#static_android.sensor.info.activeArraySize">android.<wbr/>sensor.<wbr/>info.<wbr/>active<wbr/>Array<wbr/>Size</a>.<wbr/></p>
-<p>For typical camera sensors that use rolling shutters,<wbr/> this is also equivalent
-to the frame readout time.<wbr/></p>
+<p>For typical camera sensors that use rolling shutters,<wbr/> this is also equivalent to the frame
+readout time.<wbr/></p>
+<p>If the image sensor is operating in a binned or cropped mode due to the current output
+target resolutions,<wbr/> it's possible this skew is reported to be larger than the exposure
+time,<wbr/> for example,<wbr/> since it is based on the full array even if a partial array is read
+out.<wbr/> Be sure to scale the number to cover the section of the sensor actually being used
+for the outputs you care about.<wbr/> So if your output covers N rows of the active array of
+height H,<wbr/> scale this value by N/<wbr/>H to get the total skew for that viewport.<wbr/></p>
+<p><em>Note:</em> Prior to Android 11,<wbr/> this field was described as measuring duration from
+first to last row of the image sensor,<wbr/> which is not equal to the frame readout time for a
+rolling shutter sensor.<wbr/> Implementations generally reported the latter value,<wbr/> so to resolve
+the inconsistency,<wbr/> the description has been updated to range from (first,<wbr/> last+1) row
+exposure start,<wbr/> instead.<wbr/></p>
             </td>
           </tr>
 
