@@ -83,6 +83,62 @@ cc_library {
     min_sdk_version: "29",
 }
 
+cc_library {
+    name: "libaudioutils_ext",
+    vendor: true,
+    vndk: {
+        enabled: true,
+        extends: "libaudioutils",
+    },
+    double_loadable: true,
+    defaults: ["audio_utils_defaults"],
+
+    srcs: [
+        "Balance.cpp",
+        "channels.c",
+        "ErrorLog.cpp",
+        "fifo.cpp",
+        "fifo_index.cpp",
+        "fifo_writer_T.cpp",
+        "format.c",
+        "limiter.c",
+        "Metadata.cpp",
+        "minifloat.c",
+        "mono_blend.cpp",
+        "power.cpp",
+        "PowerLog.cpp",
+        "primitives.c",
+        "roundup.c",
+        "sample.c",
+        "resampler.c",
+        "echo_reference.c",
+    ],
+
+    cflags: [
+        "-D__AUDIO_VNDK_EXT__"
+    ],
+
+    header_libs: [
+        "libaudio_system_headers",
+        "libutils_headers",
+    ],
+
+    export_header_lib_headers: [
+        "libaudio_system_headers",
+        "libutils_headers",
+    ],
+
+    shared_libs: [
+        "libcutils",
+        "liblog",
+        "libspeexresampler",
+    ],
+
+    whole_static_libs: ["libaudioutils_fixedfft"],
+
+    min_sdk_version: "29",
+}
+
 cc_library_static {
     name: "libaudioutils_fixedfft",
     vendor_available: true,
