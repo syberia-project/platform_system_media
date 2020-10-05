@@ -1207,7 +1207,7 @@ static inline bool audio_is_valid_format(audio_format_t format)
     case AUDIO_FORMAT_LHDC:
     case AUDIO_FORMAT_LHDC_LL:
     case AUDIO_FORMAT_APTX_TWSP:
-#ifdef __AUDIO_VNDK_EXT__
+#if !defined(__ANDROID_VNDK__) || defined(__AUDIO_VNDK_EXT__)
     case VX_AUDIO_FORMAT_LC3:
 #endif
         return true;
