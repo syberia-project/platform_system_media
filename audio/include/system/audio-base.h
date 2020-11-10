@@ -119,6 +119,9 @@ typedef enum {
     AUDIO_FORMAT_LHDC                = 0x28000000u,
     AUDIO_FORMAT_LHDC_LL             = 0x29000000u,
     AUDIO_FORMAT_APTX_TWSP           = 0x2A000000u,
+#if !defined(__ANDROID_VNDK__) || defined(__AUDIO_VNDK_EXT__)
+    VX_AUDIO_FORMAT_LC3              = 0x2B000000u,
+#endif
     AUDIO_FORMAT_MAIN_MASK           = 0xFF000000u,
     AUDIO_FORMAT_SUB_MASK            = 0x00FFFFFFu,
 
